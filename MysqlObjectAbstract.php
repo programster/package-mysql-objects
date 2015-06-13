@@ -2,8 +2,31 @@
 
 namespace iRAP\MysqlObjects;
 
+
+/**
+ * Using traits allows us to have static abstract functions
+ * http://stackoverflow.com/questions/999066/why-does-php-5-2-disallow-abstract-static-class-methods
+ */
+trait MysqlObjectAbstractTrait 
+{
+    /**
+     * Fetch the name of the table that holds this object
+     */
+    abstract public static function get_table_name();
+    
+    /**
+     * Fetch the mysqli connection that this object relates to.
+     * @param void
+     * @return \mysqli
+     */
+    protected static abstract function get_db();
+}
+
+
 abstract class MysqlObjectAbstract
 {
+    use MysqlObjectAbstractTrait;
+    
     protected $m_id = null;
     
     
@@ -152,12 +175,6 @@ abstract class MysqlObjectAbstract
     
     
     /**
-     * Fetch the name of the table that holds this object
-     */
-    abstract public static function get_table_name();
-    
-    
-    /**
      * Loads all of these objects from the database.
      * @param void
      * @return 
@@ -205,14 +222,6 @@ abstract class MysqlObjectAbstract
         $object = static::create_from_db_row($row);
         return $object;
     }
-    
-    
-    /**
-     * Fetch the mysqli connection that this object relates to.
-     * @param void
-     * @return \mysqli
-     */
-    protected static abstract function get_db();
     
     
     protected static function run_query($query, $errorMessage)
