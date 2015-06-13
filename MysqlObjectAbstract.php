@@ -201,26 +201,39 @@ abstract class MysqlObjectAbstract
     
     /**
      * Loads a single object of this class's type from the database using the unique row_id 
-     * @param rowId - the id of the row in the datatabase table.
+     * @param id - the id of the row in the datatabase table.
+     * @param use_cache - optionally set to false to force a database lookup even if we have a
+     *                    cached value from a previous lookup.
      * @return object - the loaded object.
      */
-    public static function load($id)
+    public static function load($id, $use_cache=true)
     {
+        static $cache = array();
         $table = static::get_table_name();
         
-        $query = "SELECT * FROM `" . $table . "` WHERE `id`='" . $id . "'";
-        
-        $result = static::run_query($query, 'Error selecting object for loading.');
-        
-        if ($result->num_rows == 0)
+        if (!isset($cache[$table]))
         {
-            throw new NoSuchIdException('There is no ' . get_called_class() .  ' with id: ' . $id);
+            $cache[$table] = array();
         }
         
-        $row = $result->fetch_assoc();
+        if (!isset($cache[$table][$id]) || !$use_cache)
+        {
+            $query = "SELECT * FROM `" . $table . "` WHERE `id`='" . $id . "'";
+            
+            $result = static::run_query($query, 'Error selecting object for loading.');
+            
+            if ($result->num_rows == 0)
+            {
+                throw new NoSuchIdException('There is no ' . get_called_class() .  ' with id: ' . $id);
+            }
+            
+            $row = $result->fetch_assoc();
+            
+            $object = static::create_from_db_row($row);
+            $cache[$table][$id] = $object;
+        }
         
-        $object = static::create_from_db_row($row);
-        return $object;
+        return $cache[$table][$id];
     }
     
     
