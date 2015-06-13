@@ -75,7 +75,7 @@ abstract class MysqlObjectAbstract
         if ($this->get_id() == null)
         {
             $query = "INSERT INTO `" . $table . "` " .
-                    "SET " . \iRAP\CoreLibs\Core::generateMysqliEscapedPairs($properties, $connection);
+                    "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($properties, $connection);
             $msg = 'running insert \n';
         }
         else
@@ -83,7 +83,7 @@ abstract class MysqlObjectAbstract
             $msg = 'running update \n';
             
             $query = "UPDATE `" . $table . "` " .
-                    "SET " . \iRAP\CoreLibs\Core::generateMysqliEscapedPairs($properties, $connection) . 
+                    "SET " .  \iRAP\CoreLibs\MysqliLib::generateQueryPairs($properties, $connection) . 
                     " WHERE `id`='" . $this->get_id() . "'";
         }
         
@@ -221,7 +221,7 @@ abstract class MysqlObjectAbstract
         
         /* @var $db \mysqli */
         $result = $db->query($query) or 
-            \iRAP\CoreLibs\Core::throwException($errorMessage . PHP_EOL . $db->error);
+            \iRAP\CoreLibs\Core::throwException($errorMessage . PHP_EOL . $query . PHP_EOL . $db->error);
         
         return $result;
     }
