@@ -111,7 +111,7 @@ abstract class MysqlObjectAbstract
         }
         
         /* @var $connection \mysqli */
-        self::run_query($query, 'Error when saving abstract mysql object.');
+        static::run_query($query, 'Error when saving abstract mysql object.');
         
         if ($this->get_id() == null)
         {
@@ -251,5 +251,4 @@ abstract class MysqlObjectAbstract
     # Accessor methods
     public function get_id() { return $this->m_id; }
 }
-
 
