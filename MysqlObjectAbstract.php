@@ -23,7 +23,7 @@ trait MysqlObjectAbstractTrait
 }
 
 
-abstract class MysqlObjectAbstract
+abstract class MysqlObjectAbstract implements MysqlObjectInterface
 {
     use MysqlObjectAbstractTrait;
     
@@ -237,8 +237,36 @@ abstract class MysqlObjectAbstract
     }
     
     
-    protected static function run_query($query, $errorMessage)
+    /**
+     * Loads a range of data from the table.
+     * It is important to note that offset is not tied to ID in any way. 
+     * @param type $offset
+     * @param type $numElements
+     * @return type
+     */
+    public static function load_range($offset, $numElements)
     {
+        $objects = array();
+        
+        $table   = static::get_table_name();
+        $query   = "SELECT * FROM `" . $table . "` LIMIT " . $offset . "," . $numElements;
+        $result  = static::run_query($query, 'Error selecting all objects for loading.');
+        
+        if ($result->num_rows > 0)
+        {
+            while (($row = $result->fetch_assoc()) != null)
+            {
+                $objects[] = static::create_from_db_row($row);
+            }
+        }
+        
+        return $objects;
+    }
+    
+    
+    protected static function run_query($query, $errorMessage)
+    {        
+        //print get_called_class() . "<BR>";
         $db = static::get_db();
         
         /* @var $db \mysqli */
@@ -251,4 +279,3 @@ abstract class MysqlObjectAbstract
     # Accessor methods
     public function get_id() { return $this->m_id; }
 }
-
