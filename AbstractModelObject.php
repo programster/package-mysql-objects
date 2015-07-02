@@ -11,14 +11,20 @@ abstract class AbstractModelObject
 {
     protected $m_id;
     
+    # Allow the user to specify fields that may be null in the database and thus don't have
+    # to be set when creating this object.
+    protected $m_fieldsThatAllowNull = array();
+    
+    
     /**
-     * When cloning objects, we remove the id so that if the cloned object is inserted, it does not replace the
-     * object that it was cloned from, but will insert a new row.
+     * When cloning objects, we remove the id so that if the cloned object is inserted, it does not
+     * replace the object that it was cloned from, but will insert a new row.
      */
     public function __clone() 
     {
         unset($this->m_id);
     } 
+    
     
     /**
      * Deletes a row  from the database provided by the items id
@@ -26,7 +32,7 @@ abstract class AbstractModelObject
      */
     public function delete() 
     { 
-        /* @var $model AbstractModel */
+        /* @var $model TableHandler */
         $model = $this->getModel();
         $model->delete($this->m_id);
     }
@@ -41,7 +47,7 @@ abstract class AbstractModelObject
     {
         $properties = array();
         
-        $getFuncs = $this->getAccessors();
+        $getFuncs = $this->get_accessor_functions();
         
         foreach ($getFuncs as $mysqlColumnName => $callback)
         {
@@ -55,13 +61,13 @@ abstract class AbstractModelObject
         if ($this->get_id() == null)
         {
             $query = 
-                "INSERT INTO `" . $this->getTableName() . "` " .
+                "INSERT INTO `" . $this->get_table_name() . "` " .
                 "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($properties, $db);
         }
         else
         {            
             $query = 
-                "UPDATE `" . $this->getTableName() . "` " .
+                "UPDATE `" . $this->get_table_name() . "` " .
                 "SET " .  \iRAP\CoreLibs\MysqliLib::generateQueryPairs($properties, $db) . 
                 " WHERE `id`='" . $this->get_id() . "'";
         }
@@ -78,12 +84,14 @@ abstract class AbstractModelObject
     
     /**
      * Creates an object of this type from a provided mysql table row.
+     * This is protected so that it is only used from the base model handler returned in 
+     * getBaseModelHandler, yet we need child classes to be able to override this.
      * @param row - the row from the mysql table this object belongs to.
      * @return object - the generated object.
      */
-    public static function createFromDbRow($row)
+    protected static function createFromDbRow($row)
     {
-        $object = $this->createNew($row);
+        $object = static::createNew($row);
         $object->m_id = $row['id'];
         return $object;
     }
@@ -91,13 +99,16 @@ abstract class AbstractModelObject
     
     /**
      * Create a new instance of this object.
+     * This is protected so that it is only used from the base model handler returned in 
+     * getBaseModelHandler, yet we need child classes to be able to override this.
+     * @param row - the row from the mysql table this object belongs to.
      * @param array $dataArray (name value pairs with names being the same as the db columns)
      * @return \static
      */
-    public function createNew($dataArray)
+    protected static function createNew($dataArray)
     {
         $object = new static();        
-        $setMethods = $object->getSetters();
+        $setMethods = $object->get_set_functions();
                 
         foreach ($setMethods as $columnName => $callback)
         {
@@ -125,36 +136,65 @@ abstract class AbstractModelObject
         return $object;
     }
     
-    # Allow the user to specify fields that may be null in the database and thus don't have
-    # to be set when creating this object.
-    protected $m_fieldsThatAllowNull = array();
+    
+    /**
+     * Return an object that can be used to interface with the table in a generic way.
+     * E.g. delete(id) load(id), and search()
+     * @return TableHandler
+     */
+    public static function getTableHandler()
+    {
+        # define the method the baseModelHandler will use to create new instances of 
+        # this class
+        
+        $objectClass = get_called_class(); # can't use late static binding in this case.
+        
+        $objectConstructor = function($params) use ($objectClass) {
+            $newObject = null;
+            
+            if (isset($params['id'])) 
+            {
+                $newObject = $objectClass::createFromDbRow($params);
+            }
+            else
+            {
+                $newObject = $objectClass::createNew($params);
+            }
+            
+            return $newObject;
+        };
+        
+        $db = static::getDb();
+        $getDbMethod = function() use($db) { 
+            return $db;
+        };
+        
+        $tableHandler = new TableHandler(static::get_table_name(), 
+                                         $getDbMethod, 
+                                         $objectConstructor);
+        
+        return $tableHandler;
+    }
     
     
     /**
-     * Force the developer to define which model relates to this modelObject.
-     * @return AbstractModel
+     * Force the user to define the name of the table.
      */
-    abstract protected function getModel();
-    
-    
-    /**
-     * Shortcut for getting the table name (directly tied to the model object)
-     */
-    protected final function getTableName() { return $this->getModel()->getTableName(); }
+    protected abstract static function get_table_name();
     
     
     /**
      * Helper shortcut for getting the database connection.
      * @return type
      */
-    protected final function getDb() { return $this->getModel()->getDb(); }
+    protected abstract static function getDb();
     
     /**
      * Fetches an array of mysql column name to property clusures for this object allowing us
      * to get and set them.
      * @return Array<\Closure>
      */    
-    abstract protected function getAccessors();
+    abstract protected function get_accessor_functions();
     
     
     /**
@@ -162,7 +202,7 @@ abstract class AbstractModelObject
      * to get and set them.
      * @return Array<\Closure>
      */  
-    abstract protected function getSetters();
+    abstract protected function get_set_functions();
     
     
     # Accessors
