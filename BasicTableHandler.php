@@ -11,7 +11,7 @@
 namespace iRAP\MysqlObjects;
 
 
-class TableHandler
+class BasicTableHandler implements TableHandlerInterface
 {
     private $m_tableName;
     private $m_methodGetDb;
@@ -125,7 +125,7 @@ class TableHandler
      * @param id - the id of the row in the datatabase table.
      * @param use_cache - optionally set to false to force a database lookup even if we have a
      *                    cached value from a previous lookup.
-     * @return TableHandler - the loaded object.
+     * @return AbstractModelObject - the loaded object.
      */
     public function load($id, $use_cache=true)
     {
@@ -188,7 +188,12 @@ class TableHandler
     }
     
     
-    public function create($inputs)
+    /**
+     * Create a object that represents a row in the database.
+     * @param array $inputs - name value pairs to create the object from.
+     * @return AbstractModelObject
+     */
+    public function create(array $inputs)
     {
         $constructor = $this->m_methodConstructor;
         return $constructor($inputs);
@@ -204,11 +209,11 @@ class TableHandler
     }
     
     
-    public function update($id, $inputs)
+    public function update($id, $unfilteredInputs)
     {
-        /* @var $existingObject AbstractModelObject */
         $existingObject = $this->load($id);
-        $existingObject->update($inputs);
+        /* @var $existingObject AbstractModelObject */
+        $existingObject->update($unfilteredInputs);
         $existingObject->save();
     }
     
