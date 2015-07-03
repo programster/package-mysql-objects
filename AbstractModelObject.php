@@ -32,7 +32,7 @@ abstract class AbstractModelObject
      */
     public function delete() 
     { 
-        /* @var $model TableHandler */
+        /* @var $model BasicTableHandler */
         $model = $this->getModel();
         $model->delete($this->m_id);
     }
@@ -140,7 +140,7 @@ abstract class AbstractModelObject
     /**
      * Return an object that can be used to interface with the table in a generic way.
      * E.g. delete(id) load(id), and search()
-     * @return TableHandler
+     * @return BasicTableHandler
      */
     public static function getTableHandler()
     {
@@ -169,7 +169,7 @@ abstract class AbstractModelObject
             return $db;
         };
         
-        $tableHandler = new TableHandler(static::get_table_name(), 
+        $tableHandler = new BasicTableHandler(static::get_table_name(), 
                                          $getDbMethod, 
                                          $objectConstructor);
         
@@ -203,6 +203,63 @@ abstract class AbstractModelObject
      * @return Array<\Closure>
      */  
     abstract protected function get_set_functions();
+    
+    
+    /**
+     * Take a given array of data and filter it. Do NOT perform mysqli escaping here as that
+     * is performed at the last possible moment in the save method. This is a good point to
+     * throw exceptions if someone has provided a string when expecting a boolean etc.
+     */
+    abstract protected static function filter_inputs(Array $data);
+    
+    
+    /**
+     * Update part of the object. This is exactly the same as replace, except that it 
+     * can take a subset of the objects parameters, rather than requiring all of them.
+     * @param type $data - array of unfiltered name value pairs.
+     */
+    public function update(array $data, $filterData=true)
+    {
+        if ($filterData)
+        {
+            $data = static::filter_inputs($data);
+        }
+        
+        $setters = $this->get_set_functions();
+        
+        foreach ($data as $name => $value)
+        {
+           if (!isset($setters[$name]))
+           {
+               $warningMessage = "Missing setter for: $name when updating: " . get_called_class();
+               trigger_error($warningMessage, E_USER_WARNING);
+           }
+           else
+           {
+               $setter = $setters[$name];
+               $setter($value);
+           }
+        }
+    }
+    
+    
+    /**
+     * Replace the current object.
+     * @param array $data - name value pairs with names being that of the db columns.
+     * @param bool $filterData - manually specify to false to force not filtering.
+     */
+    public function replace(array $data, $filterData=true)
+    {
+        if ($filterData)
+        {
+            $data = static::filter_inputs($data);
+        }
+        
+        $object = static::createNew($data);
+        $object->m_id = $this->m_id;
+        $object->save();
+    }
+            
     
     
     # Accessors
