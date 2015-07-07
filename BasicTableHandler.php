@@ -138,7 +138,7 @@ class BasicTableHandler implements TableHandlerInterface
         {
             $cache[$table] = array();
         }
-
+        
         if (!isset($cache[$table][$id]) || !$use_cache)
         {
             $query = "SELECT * FROM `" . $this->get_table_name() . "` WHERE `id`='" . $id . "'";
@@ -227,14 +227,14 @@ class BasicTableHandler implements TableHandlerInterface
     public function search(array $parameters)
     {
         $objects = array();
-
+        
         $whereClauses = array();
-
+        
         if (isset($parameters['start_id']))
         {
             $whereClauses[] = "`id` >= '" . intval($parameters['start_id']) . "'";
         }
-
+        
         if (isset($parameters['end_id']))
         {
             $whereClauses[] = "`id` <= '" . intval($parameters['end_id']) . "'";
@@ -246,12 +246,12 @@ class BasicTableHandler implements TableHandlerInterface
             {
                 $possibleIds = array();
                 $idArray = $parameters['in_id'];
-
+                
                 foreach ($idArray as $idInput)
                 {
                     $possibleIds[] = '"' . intval($idInput) . "'";
                 }
-
+                
                 $whereClauses[] = "`id` IN (" . implode(",", $possibleIds) . ")'";
             }
             else
@@ -259,10 +259,10 @@ class BasicTableHandler implements TableHandlerInterface
                 throw new \Exception('"in_id" needs to be an array of IDs ');
             }
         }
-
+        
         $offset = isset($parameters['offset']) ? intval($parameters['offset']) : 0;
         $limit = (isset($parameters['limit'])) ? intval($parameters['limit']) : $this->m_defaultSearchLimit;
-
+        
         if (count($whereClauses) > 0)
         {
             $whereClause = " WHERE " . implod(" AND ", $whereClauses);
@@ -271,18 +271,18 @@ class BasicTableHandler implements TableHandlerInterface
         {
             $whereClause = "";
         }
-
+        
         $query = 
             "SELECT * " . 
             "FROM `" . $this->get_table_name() . "` " . 
             $whereClause .
             "LIMIT " . $offset . "," . $limit;
-
+        
         $result = $this->query($query, 'Error selecting all objects.');
-
+        
         
         $constructor = $this->m_methodConstructor;
-
+        
         if ($result->num_rows > 0)
         {
             while (($row = $result->fetch_assoc()) != null)
@@ -290,13 +290,12 @@ class BasicTableHandler implements TableHandlerInterface
                 $objects[] = $constructor($row);
             }
         }
-
+        
         return $objects;
     }
-
+    
     
     public function get_table_name() { return $this->m_tableName; }
     
 }
-
 
