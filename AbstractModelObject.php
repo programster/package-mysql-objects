@@ -32,7 +32,7 @@ abstract class AbstractModelObject
      */
     public function delete() 
     { 
-        /* @var $model BasicTableHandler */
+        /* @var $model TableHandler */
         $model = $this->getModel();
         $model->delete($this->m_id);
     }
@@ -140,7 +140,7 @@ abstract class AbstractModelObject
     /**
      * Return an object that can be used to interface with the table in a generic way.
      * E.g. delete(id) load(id), and search()
-     * @return BasicTableHandler
+     * @return TableHandler
      */
     public static function getTableHandler()
     {
@@ -170,8 +170,8 @@ abstract class AbstractModelObject
         };
         
         $tableHandler = new BasicTableHandler(static::get_table_name(), 
-                                         $getDbMethod, 
-                                         $objectConstructor);
+                                              $getDbMethod, 
+                                              $objectConstructor);
         
         return $tableHandler;
     }
@@ -259,7 +259,6 @@ abstract class AbstractModelObject
         $object->m_id = $this->m_id;
         $object->save();
     }
-            
     
     
     # Accessors
