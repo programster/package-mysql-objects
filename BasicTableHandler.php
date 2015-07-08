@@ -25,9 +25,9 @@ class BasicTableHandler implements TableHandlerInterface
      * @param \Closure $methodConstructor - function taking an array of name value pairs to create
      *                                      an object with.
      */
-    public function __construct($tableName, 
-                                \Closure $getDbFunc, 
-                                \Closure $methodConstructor, 
+    public function __construct($tableName,
+                                \Closure $getDbFunc,
+                                \Closure $methodConstructor,
                                 $defaultSearchLimit=10)
     {
         $this->m_tableName = $tableName;
@@ -41,7 +41,7 @@ class BasicTableHandler implements TableHandlerInterface
      * Get a connection to the database.
      * @return \mysqli
      */
-    public function getDb() 
+    public function getDb()
     {
         $getDbMethod = $this->m_methodGetDb;
         return $getDbMethod();
@@ -49,7 +49,7 @@ class BasicTableHandler implements TableHandlerInterface
     
     
     /**
-     * Removes the obejct from the mysql database. 
+     * Removes the obejct from the mysql database.
      * @return void
      */
     public function delete($id)
@@ -76,15 +76,15 @@ class BasicTableHandler implements TableHandlerInterface
      * @return type
      */
     public function query($query, $errorMessage=null)
-    {                
+    {
         /* @var $db \mysqli */
         $db = $this->getDb();
         $result = $db->query($query);
         
         if ($result === FALSE && $errorMessage !== null)
         {
-            $msg = $errorMessage . PHP_EOL . 
-                   $query . PHP_EOL . 
+            $msg = $errorMessage . PHP_EOL .
+                   $query . PHP_EOL .
                    $db->error;
             
             throw new \Exception($msg);
@@ -97,7 +97,7 @@ class BasicTableHandler implements TableHandlerInterface
     /**
      * Loads all of these objects from the database.
      * @param void
-     * @return 
+     * @return
      */
     public function loadAll()
     {
@@ -121,7 +121,7 @@ class BasicTableHandler implements TableHandlerInterface
     
     
     /**
-     * Loads a single object of this class's type from the database using the unique row_id 
+     * Loads a single object of this class's type from the database using the unique row_id
      * @param id - the id of the row in the datatabase table.
      * @param use_cache - optionally set to false to force a database lookup even if we have a
      *                    cached value from a previous lookup.
@@ -162,7 +162,7 @@ class BasicTableHandler implements TableHandlerInterface
     
     /**
      * Loads a range of data from the table.
-     * It is important to note that offset is not tied to ID in any way. 
+     * It is important to note that offset is not tied to ID in any way.
      * @param type $offset
      * @param type $numElements
      * @return array<AbstractModel>
@@ -267,14 +267,14 @@ class BasicTableHandler implements TableHandlerInterface
         {
             $whereClause = " WHERE " . implod(" AND ", $whereClauses);
         }
-        else 
+        else
         {
             $whereClause = "";
         }
         
-        $query = 
-            "SELECT * " . 
-            "FROM `" . $this->get_table_name() . "` " . 
+        $query =
+            "SELECT * " .
+            "FROM `" . $this->get_table_name() . "` " .
             $whereClause .
             "LIMIT " . $offset . "," . $limit;
         
@@ -298,4 +298,3 @@ class BasicTableHandler implements TableHandlerInterface
     public function get_table_name() { return $this->m_tableName; }
     
 }
-
