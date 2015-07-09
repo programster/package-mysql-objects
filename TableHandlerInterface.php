@@ -70,7 +70,7 @@ interface TableHandlerInterface
     /**
      * Create a new row with unfiltered data.
      */
-    public function create($inputs);
+    public function create(array $inputs);
     
     
     /**
@@ -93,5 +93,4 @@ interface TableHandlerInterface
      */
     public function search(array $unfilteredParameters);
 }
-
 
