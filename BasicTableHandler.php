@@ -219,16 +219,28 @@ class BasicTableHandler implements TableHandlerInterface
     
     
     /**
-     * Search the table for items and return any matches as objects.
+     * Search the table for items and return any matches as objects. This method is
+     * required by the TableHandlerInterface
      * @param array $parameters
      * @return type
      * @throws \Exception
      */
     public function search(array $parameters)
     {
+        return $this->advancedSearch($parameters);
+    }
+    
+    
+    /**
+     * Search the table for items and return any matches as objects. This method is
+     * required by the TableHandlerInterface
+     * @param array $parameters
+     * @return type
+     * @throws \Exception
+     */
+    public function advancedSearch(array $parameters, $whereClauses=array())
+    {
         $objects = array();
-        
-        $whereClauses = array();
         
         if (isset($parameters['start_id']))
         {
@@ -265,21 +277,20 @@ class BasicTableHandler implements TableHandlerInterface
         
         if (count($whereClauses) > 0)
         {
-            $whereClause = " WHERE " . implod(" AND ", $whereClauses);
+            $whereClause = " WHERE " . implode(" AND ", $whereClauses);
         }
         else
         {
             $whereClause = "";
         }
         
-        $query =
-            "SELECT * " .
-            "FROM `" . $this->get_table_name() . "` " .
+        $query = 
+            "SELECT *" . 
+            " FROM `" . $this->get_table_name() . "` " . 
             $whereClause .
-            "LIMIT " . $offset . "," . $limit;
+            " LIMIT " . $offset . "," . $limit;
         
         $result = $this->query($query, 'Error selecting all objects.');
-        
         
         $constructor = $this->m_methodConstructor;
         
