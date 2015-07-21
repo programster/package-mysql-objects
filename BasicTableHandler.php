@@ -234,7 +234,7 @@ class BasicTableHandler implements TableHandlerInterface
     /**
      * Search the table for items and return any matches as objects. This method is
      * required by the TableHandlerInterface
-     * @param array $parameters
+     * @param array $parameters - these may not be sanitized already.
      * @return type
      * @throws \Exception
      */
