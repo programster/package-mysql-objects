@@ -73,7 +73,12 @@ abstract class AbstractModelObject
         }
         
         /* @var $db \mysqli */
-        $db->query($query, 'Error when saving abstract mysql object.');
+        $query_result = $db->query($query);
+        
+        if ($query_result === FALSE)
+        {
+            throw new \Exception('Error when saving abstract mysql object.');
+        }
         
         if ($this->get_id() == null)
         {
