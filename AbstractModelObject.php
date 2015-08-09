@@ -32,9 +32,9 @@ abstract class AbstractModelObject
      */
     public function delete() 
     { 
-        /* @var $model TableHandler */
-        $model = $this->getModel();
-        $model->delete($this->m_id);
+        /* @var $tableHandler TableHandler */
+        $tableHandler = $this->getTableHandler();
+        $tableHandler->delete($this->m_id);
     }
     
     
