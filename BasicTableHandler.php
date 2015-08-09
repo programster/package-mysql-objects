@@ -104,7 +104,7 @@ class BasicTableHandler implements TableHandlerInterface
         $objects = array();
         
         $query   = "SELECT * FROM `" . $this->get_table_name() . "`";
-        $result  = static::run_query($query, 'Error selecting all objects for loading.');
+        $result  = $this->query($query, 'Error selecting all objects for loading.');
         
         $constructor = $this->m_methodConstructor;
         
@@ -143,7 +143,7 @@ class BasicTableHandler implements TableHandlerInterface
         {
             $query = "SELECT * FROM `" . $this->get_table_name() . "` WHERE `id`='" . $id . "'";
             
-            $result = static::run_query($query, 'Error selecting object for loading.');
+            $result = $this->query($query, 'Error selecting object for loading.');
             
             if ($result->num_rows == 0)
             {
@@ -178,9 +178,11 @@ class BasicTableHandler implements TableHandlerInterface
         
         if ($result->num_rows > 0)
         {
+            $constructor = $this->m_methodConstructor;
+            
             while (($row = $result->fetch_assoc()) != null)
             {
-                $objects[] = static::create_from_db_row($row);
+                $objects[] = $constructor($row);
             }
         }
         
