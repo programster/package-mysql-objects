@@ -79,7 +79,7 @@ abstract class MysqlObjectAbstract
     public function save()
     {
         $table = static::get_table_name();
-
+        
         $properties = array();
         
         $getFuncs = static::get_accessor_functions();
@@ -144,7 +144,7 @@ abstract class MysqlObjectAbstract
         foreach ($setMethods as $columnName => $callback)
         {
             /* @var $callback Callback */
-            if (!isset($row[$columnName]))
+            if (!array_key_exists($columnName, $row))
             {
                 # This is ok and may be the result of setting a column to allow Null
                 $className = get_class($object);
@@ -154,12 +154,9 @@ abstract class MysqlObjectAbstract
                 trigger_error($errMsg, E_USER_WARNING);
             }
             
+            # Remember that this can legitimately be null
             $dbValue = $row[$columnName];
-            
-            if (!empty($dbValue))
-            {
-                $callback($dbValue);
-            }
+            $callback($dbValue);
         }
         
         return $object;
