@@ -55,7 +55,7 @@ class BasicTableHandler implements TableHandlerInterface
     public function delete($id)
     {
         $query = "DELETE FROM `" . $this->get_table_name() . "` WHERE `id`='" . $id . "'";
-        $this->query($query, 'Failed to delete object id: ' . $this->m_id);
+        $this->query($query, 'Failed to delete object id: ' . $id);
     }
     
     
