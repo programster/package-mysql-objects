@@ -13,7 +13,8 @@ abstract class AbstractModelObject
     
     # Allow the user to specify fields that may be null in the database and thus don't have
     # to be set when creating this object.
-    protected $m_fieldsThatAllowNull = array();
+    # This needs to be static so that it can be used in static creation methods.
+    protected static $s_fieldsThatAllowNull = array();
     
     
     /**
@@ -121,7 +122,7 @@ abstract class AbstractModelObject
             if 
             (
                 !isset($dataArray[$columnName]) &&
-                !in_array($columnName, $this->m_fieldsThatAllowNull)
+                !in_array($columnName, static::s_fieldsThatAllowNull)
             )
             {
                 $errMsg = $columnName . ' has not yet been created in the mysql table for: ' . 
