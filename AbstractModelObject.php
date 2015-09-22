@@ -11,11 +11,6 @@ abstract class AbstractModelObject
 {
     protected $m_id;
     
-    # Allow the user to specify fields that may be null in the database and thus don't have
-    # to be set when creating this object.
-    # This needs to be static so that it can be used in static creation methods.
-    protected static $s_fieldsThatAllowNull = array();
-    
     
     /**
      * When cloning objects, we remove the id so that if the cloned object is inserted, it does not
@@ -122,7 +117,7 @@ abstract class AbstractModelObject
             if 
             (
                 !isset($dataArray[$columnName]) &&
-                !in_array($columnName, static::s_fieldsThatAllowNull)
+                !in_array($columnName, static::getFieldsThatAllowNull())
             )
             {
                 $errMsg = $columnName . ' has not yet been created in the mysql table for: ' . 
@@ -265,6 +260,12 @@ abstract class AbstractModelObject
         $object->m_id = $this->m_id;
         $object->save();
     }
+    
+    
+    # Get the user to specify fields that may be null in the database and thus don't have
+    # to be set when creating this object.
+    # This needs to be static so that it can be used in static creation methods.
+    protected abstract static function getFieldsThatAllowNull();
     
     
     # Accessors
