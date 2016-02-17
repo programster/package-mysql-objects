@@ -11,12 +11,18 @@
 namespace iRAP\MysqlObjects;
 
 
-interface TableHandlerInterface
+interface TableInterface
 {
     /**
-     * Return the name of the table we are handling.
+     * Return the singleton instance of this object.
      */
-    public function get_table_name();
+    public static function getInstance();
+    
+    
+    /**
+     * Return the name of this table.
+     */
+    public function getName();
     
     
     /**

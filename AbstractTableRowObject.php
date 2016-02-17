@@ -7,7 +7,7 @@
 
 namespace iRAP\MysqlObjects;
 
-abstract class AbstractModelObject
+abstract class AbstractTableRowObject
 {
     protected $m_id;
     
