@@ -6,7 +6,7 @@
 
 namespace iRAP\MysqlObjects;
 
-abstract class AbstractResourceObject extends AbstractModelObject
+abstract class AbstractResourceObject extends AbstractTableRowObject
 {
     /**
      * Generate an array representation of this object. This will be json serialized 
