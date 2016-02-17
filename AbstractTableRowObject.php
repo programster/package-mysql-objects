@@ -57,28 +57,28 @@ abstract class AbstractTableRowObject
         if ($this->get_id() == null)
         {
             $query = 
-                "INSERT INTO `" . $this->get_table_name() . "` " .
+                "INSERT INTO `" . $this->getName() . "` " .
                 "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($properties, $db);
         }
         else
         {            
             $query = 
-                "UPDATE `" . $this->get_table_name() . "` " .
+                "UPDATE `" . $this->getName() . "` " .
                 "SET " .  \iRAP\CoreLibs\MysqliLib::generateQueryPairs($properties, $db) . 
                 " WHERE `id`='" . $this->get_id() . "'";
         }
         
         /* @var $db \mysqli */
-        $query_result = $db->query($query);
+        $queryResult = $db->query($query);
         
-        if ($query_result === FALSE)
+        if ($queryResult === FALSE)
         {
             throw new \Exception('Error when saving abstract mysql object.');
         }
         
         if ($this->get_id() == null)
         {
-            $this->m_id = mysqli_insert_id($db);
+            $this->m_id = $db->insert_id;
         }
     }
     
@@ -116,8 +116,8 @@ abstract class AbstractTableRowObject
             /* @var $callback Callback */
             if 
             (
-                !isset($dataArray[$columnName]) &&
-                !in_array($columnName, static::getFieldsThatAllowNull())
+                !isset($dataArray[$columnName])
+                && !in_array($columnName, static::getFieldsThatAllowNull())
             )
             {
                 $errMsg = $columnName . ' has not yet been created in the mysql table for: ' . 

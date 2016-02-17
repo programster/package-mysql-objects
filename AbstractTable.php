@@ -27,7 +27,7 @@ abstract class AbstractTable implements TableInterface
     {
         $objects = array();
         
-        $query   = "SELECT * FROM `" . $this->get_table_name() . "`";
+        $query   = "SELECT * FROM `" . $this->getName() . "`";
         $result  = $this->query($query, 'Error selecting all objects for loading.');
         
         $constructor = $this->m_methodConstructor;
@@ -54,7 +54,7 @@ abstract class AbstractTable implements TableInterface
     public function load($id, $use_cache=true)
     {
         static $cache = array();
-        $table = $this->get_table_name();
+        $table = $this->getName();
         
         $constructor = $this->m_methodConstructor;
         
@@ -65,7 +65,7 @@ abstract class AbstractTable implements TableInterface
         
         if (!isset($cache[$table][$id]) || !$use_cache)
         {
-            $query = "SELECT * FROM `" . $this->get_table_name() . "` WHERE `id`='" . $id . "'";
+            $query = "SELECT * FROM `" . $this->getName() . "` WHERE `id`='" . $id . "'";
             
             $result = $this->query($query, 'Error selecting object for loading.');
             
@@ -95,14 +95,14 @@ abstract class AbstractTable implements TableInterface
     {
         $objects = array();
         
-        $query   = "SELECT * FROM `" . $this->get_table_name() . "` " .
+        $query   = "SELECT * FROM `" . $this->getName() . "` " .
                    "LIMIT " . $offset . "," . $numElements;
         
         $result  = $this->query($query, 'Error selecting all objects for loading.');
         
         if ($result->num_rows > 0)
         {
-            $constructor = $this->m_methodConstructor;
+            $constructor = $this->getRowObjectConstructor();
             
             while (($row = $result->fetch_assoc()) != null)
             {
@@ -116,13 +116,13 @@ abstract class AbstractTable implements TableInterface
     
     /**
      * Create a object that represents a row in the database.
-     * @param array $inputs - name value pairs to create the object from.
+     * @param array $row - name value pairs to create the object from.
      * @return AbstractModelObject
      */
-    public function create(array $inputs)
+    public function create(array $row)
     {
-        $constructor = $this->m_methodConstructor;
-        return $constructor($inputs);
+        $constructor = $this->getRowObjectConstructor();
+        return $constructor($row);
     }
     
     
@@ -150,7 +150,7 @@ abstract class AbstractTable implements TableInterface
      */
     public function delete($id)
     {
-        $query = "DELETE FROM `" . $this->get_table_name() . "` WHERE `id`='" . $id . "'";
+        $query = "DELETE FROM `" . $this->getName() . "` WHERE `id`='" . $id . "'";
         $result = $this->getDb->query($query);
         
         if ($result === FALSE)
@@ -167,12 +167,12 @@ abstract class AbstractTable implements TableInterface
      */
     public function deleteAll()
     {
-        $query = "TRUNCATE `" . $this->get_table_name() . "`";
+        $query = "TRUNCATE `" . $this->getName() . "`";
         $result = $this->getDb()->query($query);
         
         if ($result === FALSE)
         {
-            throw new Exception('Failed to drop table: ' . $this->get_table_name());
+            throw new Exception('Failed to drop table: ' . $this->getName());
         }
         
         return $result;
@@ -247,13 +247,13 @@ abstract class AbstractTable implements TableInterface
         
         $query = 
             "SELECT *" . 
-            " FROM `" . $this->get_table_name() . "` " . 
+            " FROM `" . $this->getName() . "` " . 
             $whereClause .
             " LIMIT " . $offset . "," . $limit;
         
         $result = $this->query($query, 'Error selecting all objects.');
         
-        $constructor = $this->m_methodConstructor;
+        $constructor = $this->getRowObjectConstructor();
         
         if ($result->num_rows > 0)
         {

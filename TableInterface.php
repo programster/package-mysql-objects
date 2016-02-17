@@ -54,13 +54,13 @@ interface TableInterface
     
     
     /**
-     * Loads a single object of this class's type from the database using the unique row_id 
-     * @param id - the id of the row in the datatabase table.
-     * @param use_cache - optionally set to false to force a database lookup even if we have a
+     * Loads a single object of this class's type from the database using the unique ID of the row. 
+     * @param int id - the id of the row in the datatabase table.
+     * @param bool useCache - optionally set to false to force a database lookup even if we have a
      *                    cached value from a previous lookup.
-     * @return BasicTableHandler - the loaded object.
+     * @return AbstractTableRowObject - the loaded object.
      */
-    public function load($id, $use_cache=true);
+    public function load($id, $useCache=true);
     
     
     /**
@@ -68,7 +68,7 @@ interface TableInterface
      * It is important to note that offset is not tied to ID in any way. 
      * @param type $offset
      * @param type $numElements
-     * @return array<AbstractModel>
+     * @return array<AbstractTableRowObject>
      */
     public function loadRange($offset, $numElements);
     
