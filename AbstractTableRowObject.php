@@ -1,7 +1,7 @@
 <?php
 
 /* 
- * This class represents the base of a "data" object for each table. E.g. each row in a table can
+ * This class represents a single row in a table. E.g. each row in a table can
  * be turned into one of these and interacted with.
  */
 
@@ -28,9 +28,7 @@ abstract class AbstractTableRowObject
      */
     public function delete() 
     { 
-        /* @var $tableHandler TableHandler */
-        $tableHandler = $this->getTableHandler();
-        $tableHandler->delete($this->m_id);
+        $this->getTableHandler()->delete($this->m_id);
     }
     
     
@@ -42,115 +40,72 @@ abstract class AbstractTableRowObject
     public function save()
     {
         $properties = array();
-        
         $getFuncs = $this->getAccessorFunctions();
         
         foreach ($getFuncs as $mysqlColumnName => $callback)
         {
             /* @var $callback Callback */
             $property = $callback();
-            $properties[$mysqlColumnName] = $property;            
+            $properties[$mysqlColumnName] = $property;
         }
-                
-        $db = $this->getDb();
         
         if ($this->get_id() == null)
         {
-            $query = 
-                "INSERT INTO `" . $this->getName() . "` " .
-                "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($properties, $db);
+            $this->getTableHandler()->create($properties);
+            $this->m_id = $this->getTableHandler()->getDb()->insert_id;
         }
         else
-        {            
-            $query = 
-                "UPDATE `" . $this->getName() . "` " .
-                "SET " .  \iRAP\CoreLibs\MysqliLib::generateQueryPairs($properties, $db) . 
-                " WHERE `id`='" . $this->get_id() . "'";
-        }
-        
-        /* @var $db \mysqli */
-        $queryResult = $db->query($query);
-        
-        if ($queryResult === FALSE)
         {
-            throw new \Exception('Error when saving abstract mysql object.');
-        }
-        
-        if ($this->get_id() == null)
-        {
-            $this->m_id = $db->insert_id;
+            $this->getTableHandler()->update($properties);
         }
     }
     
     
     /**
-     * Creates an object of this type from a provided mysql table row.
-     * This is protected so that it is only used from the base model handler returned in 
-     * getBaseModelHandler, yet we need child classes to be able to override this.
-     * @param row - the row from the mysql table this object belongs to.
-     * @return object - the generated object.
+     * Helper to the constructor. Create this object from the passed in inputs.
+     * @param array $row - name value pairs of column to values
+     * @throws \Exception
      */
-    protected static function createFromDbRow($row)
+    protected function initializeFromArray($row)
     {
-        $object = static::createNew($row);
-        $object->m_id = $row['id'];
-        return $object;
-    }
-    
-    
-    /**
-     * Create a new instance of this object.
-     * This is protected so that it is only used from the base model handler returned in 
-     * getBaseModelHandler, yet we need child classes to be able to override this.
-     * @param row - the row from the mysql table this object belongs to.
-     * @param array $dataArray (name value pairs with names being the same as the db columns)
-     * @return \static
-     */
-    protected static function createNew($dataArray)
-    {
-        $object = new static();        
-        $setMethods = $object->getSetFunctions();
+        if (isset($row['id']))
+        {
+            $this->m_id = $row['id'];
+        }
+         
+        $setMethods = $this->getSetFunctions();
                 
         foreach ($setMethods as $columnName => $callback)
         {
             /* @var $callback Callback */
             if 
             (
-                !isset($dataArray[$columnName])
-                && !in_array($columnName, static::getFieldsThatAllowNull())
+                !isset($row[$columnName])
+                && !in_array($columnName, $this->getTableHandler()->getFieldsThatAllowNull())
             )
             {
                 $errMsg = $columnName . ' has not yet been created in the mysql table for: ' . 
-                          get_class($object);
+                          get_class($this);
                 
                 throw new \Exception($errMsg);
             }
             
-            $dbValue = $dataArray[$columnName];
+            $value = $row[$columnName];
             
-            if (!empty($dbValue))
+            if (!empty($value))
             {
-                $callback($dbValue);
+                $callback($value);
             }
         }
-        
-        return $object;
     }
     
     
     /**
      * Return an object that can be used to interface with the table in a generic way.
      * E.g. delete(id) load(id), and search()
-     * @return TableHandler
+     * @return TableInterface
      */
     public abstract function getTableHandler();
-    
-    
-    /**
-     * Helper shortcut for getting the database connection.
-     * @return type
-     */
-    protected abstract static function getDb();
     
     
     /**
@@ -174,7 +129,7 @@ abstract class AbstractTableRowObject
      * is performed at the last possible moment in the save method. This is a good point to
      * throw exceptions if someone has provided a string when expecting a boolean etc.
      */
-    abstract protected static function filterInputs(Array $data);
+    abstract protected function filterInputs(Array $data);
     
     
     /**
@@ -186,7 +141,7 @@ abstract class AbstractTableRowObject
     {
         if ($filterData)
         {
-            $data = static::filterInputs($data);
+            $data = $this->filterInputs($data);
         }
         
         $setters = $this->getSetFunctions();
@@ -216,19 +171,12 @@ abstract class AbstractTableRowObject
     {
         if ($filterData)
         {
-            $data = static::filterInputs($data);
+            $data = $this->filterInputs($data);
         }
         
-        $object = static::createNew($data);
-        $object->m_id = $this->m_id;
-        $object->save();
+        $this->initializeFromArray($data);
+        $this->save();
     }
-    
-    
-    # Get the user to specify fields that may be null in the database and thus don't have
-    # to be set when creating this object.
-    # This needs to be static so that it can be used in static creation methods.
-    protected abstract static function getFieldsThatAllowNull();
     
     
     # Accessors

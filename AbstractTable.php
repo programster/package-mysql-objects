@@ -30,7 +30,7 @@ abstract class AbstractTable implements TableInterface
         $query   = "SELECT * FROM `" . $this->getName() . "`";
         $result  = $this->query($query, 'Error selecting all objects for loading.');
         
-        $constructor = $this->m_methodConstructor;
+        $constructor = $this->getRowObjectConstructor();
         
         if ($result->num_rows > 0)
         {
@@ -56,7 +56,7 @@ abstract class AbstractTable implements TableInterface
         static $cache = array();
         $table = $this->getName();
         
-        $constructor = $this->m_methodConstructor;
+        $constructor = $this->getRowObjectConstructor();
         
         if (!isset($cache[$table]))
         {
@@ -115,32 +115,81 @@ abstract class AbstractTable implements TableInterface
     
     
     /**
-     * Create a object that represents a row in the database.
+     * Create a new object that represents a new row in the database.
      * @param array $row - name value pairs to create the object from.
      * @return AbstractModelObject
      */
     public function create(array $row)
     {
-        $constructor = $this->getRowObjectConstructor();
-        return $constructor($row);
+        $db = $this->getDb();
+        
+        $query = "INSERT INTO " . $this->getName() . " SET " . 
+                \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
+        
+        $result = $db->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new \Exception("replace query failed: " . $db->error);
+        }
+        
+        return $result;
     }
     
     
-    public function replace($id, $inputs)
+    /**
+     * Replace rows in a table. If they don't exist, then they will be inserted.
+     * This only makes sense if the the primary or unique key is set in the input parameter.
+     * @param array $row - row of data to replace with.
+     * @return mysqli_result
+     */
+    public function replace($row)
     {
-        /* @var $existingObject AbstractModelObject */
-        $existingObject = $this->load($id);
-        $existingObject->replace($inputs);
-        $existingObject->save();
+        $db = $this->getDb();
+        
+        $query = "REPLACE INTO " . $this->getName() . " SET " . 
+                \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
+        
+        $result = $db->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new \Exception("replace query failed: " . $db->error);
+        }
+        
+        return $result;
     }
     
     
-    public function update($id, $unfilteredInputs)
+    /**
+     * Update rows in a table.
+     * @param array $row - name value pairs
+     * @param array $wherePairs - name value pairs of where x = y
+     * @return mysqli_result
+     * @throws Exception if query failed.
+     */
+    public function update(array $row, array $wherePairs)
     {
-        $existingObject = $this->load($id);
-        /* @var $existingObject AbstractModelObject */
-        $existingObject->update($unfilteredInputs);
-        $existingObject->save();
+        $whereStrings = array();
+        
+        foreach ($wherePairs as $key => $value)
+        {
+            $whereStrings[] = $query .= "`" . $key . "`='" . $value . "'";
+        }
+        
+        $query =
+            "UPDATE `" . $this->getName() . "`" . 
+            "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $this->getDb()) . 
+            "WHERE " . explode(" AND ", $whereStrings);
+        
+        $result = $this->getDb()->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new Exception("Failed to update row in " . $this->getName());
+        }
+        
+        return $result;
     }
     
     
@@ -164,15 +213,31 @@ abstract class AbstractTable implements TableInterface
     
     /**
      * Deletes all rows from the table by running TRUNCATE.
+     * @param bool $inTransaction - set to true to run a slower query that won't implicitly commit
      */
-    public function deleteAll()
+    public function deleteAll($inTransaction=false)
     {
-        $query = "TRUNCATE `" . $this->getName() . "`";
-        $result = $this->getDb()->query($query);
-        
-        if ($result === FALSE)
+        if ($inTransaction)
         {
-            throw new Exception('Failed to drop table: ' . $this->getName());
+            # This is much slower but can be run without inside a transaction
+            $query = "DELETE FROM `" . $this->getName() . "`";
+            $result = $this->getDb()->query($query);
+            
+            if ($result === FALSE)
+            {
+                throw new Exception('Failed to drop table: ' . $this->getName());
+            }
+        }
+        else
+        {
+            # This is much faster, but will cause an implicit commit.
+            $query = "TRUNCATE `" . $this->getName() . "`";
+            $result = $this->getDb()->query($query);
+            
+            if ($result === FALSE)
+            {
+                throw new Exception('Failed to drop table: ' . $this->getName());
+            }
         }
         
         return $result;
@@ -282,7 +347,21 @@ abstract class AbstractTable implements TableInterface
     }
     
     
+    # Get the user to specify fields that may be null in the database and thus don't have
+    # to be set when creating this object.
+    # This needs to be static so that it can be used in static creation methods.
+    public function getFieldsThatAllowNull();
+    
+    
     public function getName() { return $this->m_tableName; }
+    
+    
+    /**
+     * Return an inline function that takes the $row array and will construct the TableRowObject
+     * @return Callable
+     */
     public abstract function getRowObjectConstructor();
+    
+    
     public abstract function getDb();
 }

@@ -82,13 +82,13 @@ interface TableInterface
     /**
      * Replace a row by id.
      */
-    public function replace($id, $unfilteredData);
+    public function replace($row);
     
     
     /**
      * Update a specified row with inputs
      */
-    public function update($id, $unfilteredData);
+    public function update($row);
     
     
     /**
