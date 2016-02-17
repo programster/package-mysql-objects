@@ -33,7 +33,7 @@ interface TableInterface
     
     
     /**
-     * Removes the obejct from the mysql database. 
+     * Removes the obeject from the mysql database. 
      * @return void
      */
     public function delete($id);
