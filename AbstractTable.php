@@ -11,87 +11,11 @@
 namespace iRAP\MysqlObjects;
 
 
-class BasicTableHandler implements TableHandlerInterface
+abstract class AbstractTable implements TableInterface
 {
-    private $m_tableName;
-    private $m_methodGetDb;
-    private $m_methodConstructor;
-    private $m_defaultSearchLimit;
-    
-    /**
-     * 
-     * @param string $tableName - the name of the table this class interacts with.
-     * @param \Closure $getDbFunc - closure that should return a connection to the relevant db.
-     * @param \Closure $methodConstructor - function taking an array of name value pairs to create
-     *                                      an object with.
-     */
-    public function __construct($tableName,
-                                \Closure $getDbFunc,
-                                \Closure $methodConstructor,
-                                $defaultSearchLimit=10)
-    {
-        $this->m_tableName = $tableName;
-        $this->m_methodGetDb = $getDbFunc;
-        $this->m_methodConstructor = $methodConstructor;
-        $this->m_defaultSearchLimit = 10;
-    }
-    
-    
-    /**
-     * Get a connection to the database.
-     * @return \mysqli
-     */
-    public function getDb()
-    {
-        $getDbMethod = $this->m_methodGetDb;
-        return $getDbMethod();
-    }
-    
-    
-    /**
-     * Removes the obejct from the mysql database.
-     * @return void
-     */
-    public function delete($id)
-    {
-        $query = "DELETE FROM `" . $this->get_table_name() . "` WHERE `id`='" . $id . "'";
-        $this->query($query, 'Failed to delete object id: ' . $id);
-    }
-    
-    
-    /**
-     * Deletes all rows from the table by running TRUNCATE.
-     */
-    public function deleteAll()
-    {
-        $query = "TRUNCATE `" . $this->get_table_name() . "`";
-        $this->query($query, 'Failed to drop table: ' . $this->get_table_name());
-    }
-    
-    
-    /**
-     * Helper function to query the database.
-     * @param type $query
-     * @param type $errorMessage
-     * @return type
-     */
-    public function query($query, $errorMessage=null)
-    {
-        /* @var $db \mysqli */
-        $db = $this->getDb();
-        $result = $db->query($query);
-        
-        if ($result === FALSE && $errorMessage !== null)
-        {
-            $msg = $errorMessage . PHP_EOL .
-                   $query . PHP_EOL .
-                   $db->error;
-            
-            throw new \Exception($msg);
-        }
-        
-        return $result;
-    }
+    protected static $s_instance = null;
+    protected $m_tableName;
+    protected $m_defaultSearchLimit = 999999999999999999;
     
     
     /**
@@ -221,6 +145,41 @@ class BasicTableHandler implements TableHandlerInterface
     
     
     /**
+     * Removes the obejct from the mysql database.
+     * @return void
+     */
+    public function delete($id)
+    {
+        $query = "DELETE FROM `" . $this->get_table_name() . "` WHERE `id`='" . $id . "'";
+        $result = $this->getDb->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new \Exception('Failed to delete ' . $this->getName() .  ' with row id: ' . $id);
+        }
+        
+        return $result;
+    }
+    
+    
+    /**
+     * Deletes all rows from the table by running TRUNCATE.
+     */
+    public function deleteAll()
+    {
+        $query = "TRUNCATE `" . $this->get_table_name() . "`";
+        $result = $this->getDb()->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new Exception('Failed to drop table: ' . $this->get_table_name());
+        }
+        
+        return $result;
+    }
+    
+    
+    /**
      * Search the table for items and return any matches as objects. This method is
      * required by the TableHandlerInterface
      * @param array $parameters
@@ -308,6 +267,22 @@ class BasicTableHandler implements TableHandlerInterface
     }
     
     
-    public function get_table_name() { return $this->m_tableName; }
+    /**
+     * Fetch the single instance of this object.
+     * @return type
+     */
+    public static function getInstance() 
+    {
+        if (self::$s_instance == null)
+        {
+            self::$s_instance = static::__construct();
+        }
+        
+        return self::$s_instance;
+    }
     
+    
+    public function getName() { return $this->m_tableName; }
+    public abstract function getRowObjectConstructor();
+    public abstract function getDb();
 }

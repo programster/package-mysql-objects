@@ -43,7 +43,7 @@ abstract class AbstractTableRowObject
     {
         $properties = array();
         
-        $getFuncs = $this->get_accessor_functions();
+        $getFuncs = $this->getAccessorFunctions();
         
         foreach ($getFuncs as $mysqlColumnName => $callback)
         {
@@ -109,7 +109,7 @@ abstract class AbstractTableRowObject
     protected static function createNew($dataArray)
     {
         $object = new static();        
-        $setMethods = $object->get_set_functions();
+        $setMethods = $object->getSetFunctions();
                 
         foreach ($setMethods as $columnName => $callback)
         {
@@ -143,45 +143,7 @@ abstract class AbstractTableRowObject
      * E.g. delete(id) load(id), and search()
      * @return TableHandler
      */
-    public static function getTableHandler()
-    {
-        # define the method the baseModelHandler will use to create new instances of 
-        # this class
-        
-        $objectClass = get_called_class(); # can't use late static binding in this case.
-        
-        $objectConstructor = function($params) use ($objectClass) {
-            $newObject = null;
-            
-            if (isset($params['id'])) 
-            {
-                $newObject = $objectClass::createFromDbRow($params);
-            }
-            else
-            {
-                $newObject = $objectClass::createNew($params);
-            }
-            
-            return $newObject;
-        };
-        
-        $db = static::getDb();
-        $getDbMethod = function() use($db) { 
-            return $db;
-        };
-        
-        $tableHandler = new BasicTableHandler(static::get_table_name(), 
-                                              $getDbMethod, 
-                                              $objectConstructor);
-        
-        return $tableHandler;
-    }
-    
-    
-    /**
-     * Force the user to define the name of the table.
-     */
-    protected abstract static function get_table_name();
+    public abstract function getTableHandler();
     
     
     /**
@@ -190,12 +152,13 @@ abstract class AbstractTableRowObject
      */
     protected abstract static function getDb();
     
+    
     /**
      * Fetches an array of mysql column name to property clusures for this object allowing us
      * to get and set them.
      * @return Array<\Closure>
      */    
-    abstract protected function get_accessor_functions();
+    abstract protected function getAccessorFunctions();
     
     
     /**
@@ -203,7 +166,7 @@ abstract class AbstractTableRowObject
      * to get and set them.
      * @return Array<\Closure>
      */  
-    abstract protected function get_set_functions();
+    abstract protected function getSetFunctions();
     
     
     /**
@@ -211,7 +174,7 @@ abstract class AbstractTableRowObject
      * is performed at the last possible moment in the save method. This is a good point to
      * throw exceptions if someone has provided a string when expecting a boolean etc.
      */
-    abstract protected static function filter_inputs(Array $data);
+    abstract protected static function filterInputs(Array $data);
     
     
     /**
@@ -223,10 +186,10 @@ abstract class AbstractTableRowObject
     {
         if ($filterData)
         {
-            $data = static::filter_inputs($data);
+            $data = static::filterInputs($data);
         }
         
-        $setters = $this->get_set_functions();
+        $setters = $this->getSetFunctions();
         
         foreach ($data as $name => $value)
         {
@@ -253,7 +216,7 @@ abstract class AbstractTableRowObject
     {
         if ($filterData)
         {
-            $data = static::filter_inputs($data);
+            $data = static::filterInputs($data);
         }
         
         $object = static::createNew($data);
