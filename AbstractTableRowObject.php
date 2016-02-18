@@ -107,19 +107,6 @@ abstract class AbstractTableRowObject
     
     
     /**
-     * Take a given array of USER PROVIDED data and validate it.
-     * This is where you would check that the provided date is the correct type such as an int
-     * instead of a string, and possibly run more advanced logic to ensure a date was in UK format
-     * instead of american format
-     * WARNING - Do NOT perform mysqli escaping here as that is performed at the last possible 
-     * moment in the save method. 
-     * This is a good point to throw exceptions if someone has provided  a string when expecting a 
-     * boolean etc.
-     */
-    public abstract function validateInputs(Array $data);
-    
-    
-    /**
      * Helper to the constructor. Create this object from the passed in inputs.
      * @param array $row - name value pairs of column to values
      * @throws \Exception
