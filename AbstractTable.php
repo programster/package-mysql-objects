@@ -31,7 +31,7 @@ abstract class AbstractTable implements TableInterface
     {
         $objects = array();
         
-        $query   = "SELECT * FROM `" . $this->getName() . "`";
+        $query   = "SELECT * FROM `" . $this->getTableName() . "`";
         $result  = $this->query($query, 'Error selecting all objects for loading.');
         
         $constructor = $this->getRowObjectConstructorWrapper();
@@ -62,7 +62,7 @@ abstract class AbstractTable implements TableInterface
         if (!isset($this->m_objectCache[$id]) || !$useCache)
         {
             $db = $this->getDb();
-            $query = "SELECT * FROM `" . $this->getName() . "` WHERE `id`='" . $id . "'";
+            $query = "SELECT * FROM `" . $this->getTableName() . "` WHERE `id`='" . $id . "'";
             $result = $db->query($query);
             
             if ($result === FALSE)
@@ -72,7 +72,7 @@ abstract class AbstractTable implements TableInterface
             
             if ($result->num_rows == 0)
             {
-                $msg = 'There is no ' . $this->getName() .  ' object with id: ' . $id;
+                $msg = 'There is no ' . $this->getTableName() .  ' object with id: ' . $id;
                 throw new NoSuchIdException($msg);
             }
             
@@ -97,7 +97,7 @@ abstract class AbstractTable implements TableInterface
     {
         $objects = array();
         
-        $query   = "SELECT * FROM `" . $this->getName() . "` " .
+        $query   = "SELECT * FROM `" . $this->getTableName() . "` " .
                    "LIMIT " . $offset . "," . $numElements;
         
         $db = $this->getDb();
@@ -131,7 +131,7 @@ abstract class AbstractTable implements TableInterface
     {
         $db = $this->getDb();
         
-        $query = "INSERT INTO " . $this->getName() . " SET " . 
+        $query = "INSERT INTO " . $this->getTableName() . " SET " . 
                 \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
         
         $result = $db->query($query);
@@ -163,7 +163,7 @@ abstract class AbstractTable implements TableInterface
     {
         $db = $this->getDb();
         
-        $query = "REPLACE INTO " . $this->getName() . " SET " . 
+        $query = "REPLACE INTO " . $this->getTableName() . " SET " . 
                 \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
         
         $result = $db->query($query);
@@ -189,7 +189,7 @@ abstract class AbstractTable implements TableInterface
         # This logic must not ever be changed to load the row object and then call update on that 
         # because it's update method will call this method and you will end up with a loop.
         $query =
-            "UPDATE `" . $this->getName() . "`" . 
+            "UPDATE `" . $this->getTableName() . "`" . 
             "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $this->getDb()) . 
             "WHERE `id`='" . $id . "'";
         
@@ -197,7 +197,7 @@ abstract class AbstractTable implements TableInterface
         
         if ($result === FALSE)
         {
-            throw new \Exception("Failed to update row in " . $this->getName());
+            throw new \Exception("Failed to update row in " . $this->getTableName());
         }
         
         if (isset($this->m_objectCache[$id]))
@@ -249,12 +249,12 @@ abstract class AbstractTable implements TableInterface
      */
     public function delete($id)
     {
-        $query = "DELETE FROM `" . $this->getName() . "` WHERE `id`='" . $id . "'";
+        $query = "DELETE FROM `" . $this->getTableName() . "` WHERE `id`='" . $id . "'";
         $result = $this->getDb->query($query);
         
         if ($result === FALSE)
         {
-            throw new \Exception('Failed to delete ' . $this->getName() .  ' with row id: ' . $id);
+            throw new \Exception('Failed to delete ' . $this->getTableName() .  ' with row id: ' . $id);
         }
         
         $this->unsetCache($id);
@@ -273,23 +273,23 @@ abstract class AbstractTable implements TableInterface
         if ($inTransaction)
         {
             # This is much slower but can be run without inside a transaction
-            $query = "DELETE FROM `" . $this->getName() . "`";
+            $query = "DELETE FROM `" . $this->getTableName() . "`";
             $result = $this->getDb()->query($query);
             
             if ($result === FALSE)
             {
-                throw new Exception('Failed to drop table: ' . $this->getName());
+                throw new Exception('Failed to drop table: ' . $this->getTableName());
             }
         }
         else
         {
             # This is much faster, but will cause an implicit commit.
-            $query = "TRUNCATE `" . $this->getName() . "`";
+            $query = "TRUNCATE `" . $this->getTableName() . "`";
             $result = $this->getDb()->query($query);
             
             if ($result === FALSE)
             {
-                throw new Exception('Failed to drop table: ' . $this->getName());
+                throw new Exception('Failed to drop table: ' . $this->getTableName());
             }
         }
         
@@ -366,7 +366,7 @@ abstract class AbstractTable implements TableInterface
         
         $query = 
             "SELECT *" . 
-            " FROM `" . $this->getName() . "` " . 
+            " FROM `" . $this->getTableName() . "` " . 
             $whereClause .
             " LIMIT " . $offset . "," . $limit;
         
@@ -412,7 +412,7 @@ abstract class AbstractTable implements TableInterface
      * Get the name of this table.
      * @return string - the name of the table.
      */
-    public function getName() { return $this->m_tableName; }
+    public function getTableName() { return $this->m_tableName; }
     
     
     /**

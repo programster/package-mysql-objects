@@ -22,7 +22,7 @@ interface TableInterface
     /**
      * Return the name of this table.
      */
-    public function getName();
+    public function getTableName();
     
     
     /**
