@@ -13,18 +13,45 @@ abstract class AbstractTableRowObject
     
     
     /**
-     * When cloning objects, we remove the id so that if the cloned object is inserted, it does not
-     * replace the object that it was cloned from, but will insert a new row.
+     * Replace the current object.
+     * @param array $data - name value pairs with names being that of the db columns.
      */
-    public function __clone() 
+    public function replace(array $data)
     {
-        unset($this->m_id);
-    } 
+        $this->initializeFromArray($data);
+        $this->save();
+    }
     
     
     /**
-     * Deletes a row  from the database provided by the items id
-     * @param int $id - the id of the row in the database.
+     * Update part of the object. This is the same as replace, except that it 
+     * can take a subset of the objects parameters, rather than requiring all of them.
+     * @param type $data - array of name value pairs.
+     */
+    public function update(array $data)
+    {
+        $setters = $this->getSetFunctions();
+        
+        foreach ($data as $name => $value)
+        {
+           if (!isset($setters[$name]))
+           {
+               $warningMessage = "Missing setter for: $name when updating: " . get_called_class();
+               trigger_error($warningMessage, E_USER_WARNING);
+           }
+           else
+           {
+               $setter = $setters[$name];
+               $setter($value);
+           }
+        }
+        
+        $this->save();
+    }
+    
+    
+    /**
+     * Deletes a row from the database provided by the items id
      */
     public function delete() 
     { 
@@ -51,14 +78,45 @@ abstract class AbstractTableRowObject
         
         if ($this->get_id() == null)
         {
-            $this->getTableHandler()->create($properties);
-            $this->m_id = $this->getTableHandler()->getDb()->insert_id;
+            $createdObject = $this->getTableHandler()->create($properties);
+            $this->m_id = $createdObject->get_id();
         }
         else
         {
-            $this->getTableHandler()->update($properties);
+            $this->getTableHandler()->update($this->m_id, $properties);
         }
     }
+    
+    
+    /**
+     * When cloning objects, we remove the id so that if the cloned object is inserted, it does not
+     * replace the object that it was cloned from, but will insert a new row.
+     */
+    public function __clone() 
+    {
+        unset($this->m_id);
+    }
+    
+    
+    /**
+     * Return an object that can be used to interface with the table in a generic way.
+     * E.g. delete(id) load(id), and search()
+     * @return TableInterface
+     */
+    public abstract function getTableHandler();
+    
+    
+    /**
+     * Take a given array of USER PROVIDED data and validate it.
+     * This is where you would check that the provided date is the correct type such as an int
+     * instead of a string, and possibly run more advanced logic to ensure a date was in UK format
+     * instead of american format
+     * WARNING - Do NOT perform mysqli escaping here as that is performed at the last possible 
+     * moment in the save method. 
+     * This is a good point to throw exceptions if someone has provided  a string when expecting a 
+     * boolean etc.
+     */
+    public abstract function validateInputs(Array $data);
     
     
     /**
@@ -101,19 +159,11 @@ abstract class AbstractTableRowObject
     
     
     /**
-     * Return an object that can be used to interface with the table in a generic way.
-     * E.g. delete(id) load(id), and search()
-     * @return TableInterface
-     */
-    public abstract function getTableHandler();
-    
-    
-    /**
      * Fetches an array of mysql column name to property clusures for this object allowing us
      * to get and set them.
      * @return Array<\Closure>
      */    
-    abstract protected function getAccessorFunctions();
+    protected abstract function getAccessorFunctions();
     
     
     /**
@@ -121,61 +171,33 @@ abstract class AbstractTableRowObject
      * to get and set them.
      * @return Array<\Closure>
      */  
-    abstract protected function getSetFunctions();
+    protected abstract function getSetFunctions();
     
     
     /**
-     * Take a given array of data and filter it. Do NOT perform mysqli escaping here as that
-     * is performed at the last possible moment in the save method. This is a good point to
-     * throw exceptions if someone has provided a string when expecting a boolean etc.
+     * Get this object in array form. This will be keyed by the column names
+     * and have values of what is in the database. This is in its "raw" form and
+     * may not be suitable for returning in an API response where some things may
+     * need to be filtered out (such as passwords) or formatted (such as unix timestamps).
+     * @return array
      */
-    abstract protected function filterInputs(Array $data);
-    
-    
-    /**
-     * Update part of the object. This is exactly the same as replace, except that it 
-     * can take a subset of the objects parameters, rather than requiring all of them.
-     * @param type $data - array of unfiltered name value pairs.
-     */
-    public function update(array $data, $filterData=true)
+    public function getArrayForm()
     {
-        if ($filterData)
+        $arrayForm = array();
+        
+        if (isset($this->m_id))
         {
-            $data = $this->filterInputs($data);
+            $arrayForm['id'] = $this->m_id;
         }
         
-        $setters = $this->getSetFunctions();
+        $accessors = $this->getAccessorFunctions();
         
-        foreach ($data as $name => $value)
+        foreach ($accessors as $column_name => $callback)
         {
-           if (!isset($setters[$name]))
-           {
-               $warningMessage = "Missing setter for: $name when updating: " . get_called_class();
-               trigger_error($warningMessage, E_USER_WARNING);
-           }
-           else
-           {
-               $setter = $setters[$name];
-               $setter($value);
-           }
-        }
-    }
-    
-    
-    /**
-     * Replace the current object.
-     * @param array $data - name value pairs with names being that of the db columns.
-     * @param bool $filterData - manually specify to false to force not filtering.
-     */
-    public function replace(array $data, $filterData=true)
-    {
-        if ($filterData)
-        {
-            $data = $this->filterInputs($data);
+            $arrayForm[$column_name] = $callback();
         }
         
-        $this->initializeFromArray($data);
-        $this->save();
+        return $arrayForm;
     }
     
     

@@ -75,6 +75,7 @@ interface TableInterface
     
     /**
      * Create a new row with unfiltered data.
+     * @return AbstractTableRowObject
      */
     public function create(array $inputs);
     
@@ -82,13 +83,14 @@ interface TableInterface
     /**
      * Replace a row by id.
      */
-    public function replace($row);
+    public function replace(array $row);
     
     
     /**
      * Update a specified row with inputs
+     * @return AbstractTableRowObject
      */
-    public function update($row);
+    public function update($id, array $row);
     
     
     /**
@@ -99,4 +101,3 @@ interface TableInterface
      */
     public function search(array $unfilteredParameters);
 }
-
