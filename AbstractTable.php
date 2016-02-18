@@ -13,8 +13,9 @@ namespace iRAP\MysqlObjects;
 
 abstract class AbstractTable implements TableInterface
 {
-    protected static $s_instance = null;
-    protected $m_tableName;
+    # Array of all the child instances that get created.
+    protected static $s_instances = array();
+    
     protected $m_defaultSearchLimit = 999999999999999999;
     
     # Cache of loaded objects so we don't need to go and re-fetch them.
@@ -391,12 +392,14 @@ abstract class AbstractTable implements TableInterface
      */
     public static function getInstance() 
     {
-        if (self::$s_instance == null)
+        $className = get_called_class();
+        
+        if (!isset(self::$s_instances[$className]))
         {
-            self::$s_instance = static::__construct();
+            self::$s_instances[$className] = new $className();
         }
         
-        return self::$s_instance;
+        return self::$s_instances[$className];
     }
     
     
@@ -406,13 +409,6 @@ abstract class AbstractTable implements TableInterface
      * @return array<string> - array of column names that may be null.
      */
     public function getFieldsThatAllowNull();
-    
-    
-    /**
-     * Get the name of this table.
-     * @return string - the name of the table.
-     */
-    public function getTableName() { return $this->m_tableName; }
     
     
     /**
