@@ -54,7 +54,7 @@ abstract class AbstractTable implements TableInterface
      * @param int id - the id of the row in the datatabase table.
      * @param bool useCache - optionally set to false to force a database lookup even if we have a
      *                    cached value from a previous lookup.
-     * @return AbstractModelObject - the loaded object.
+     * @return AbstractTableRowObject - the loaded object.
      */
     public function load($id, $useCache=true)
     {
@@ -92,7 +92,7 @@ abstract class AbstractTable implements TableInterface
      * It is important to note that offset is not tied to ID in any way.
      * @param type $offset
      * @param type $numElements
-     * @return array<AbstractModel>
+     * @return array<AbstractTableRowObject>
      */
     public function loadRange($offset, $numElements)
     {
@@ -126,7 +126,7 @@ abstract class AbstractTable implements TableInterface
     /**
      * Create a new object that represents a new row in the database.
      * @param array $row - name value pairs to create the object from.
-     * @return AbstractModelObject
+     * @return AbstractTableRowObject
      */
     public function create(array $row)
     {
