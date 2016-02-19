@@ -26,7 +26,7 @@ abstract class AbstractTable implements TableInterface
     /**
      * Loads all of these objects from the database.
      * @param void
-     * @return
+     * @return array
      */
     public function loadAll()
     {
