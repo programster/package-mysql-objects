@@ -388,7 +388,7 @@ abstract class AbstractTable implements TableInterface
     
     /**
      * Fetch the single instance of this object.
-     * @return type
+     * @return AbstractTable
      */
     public static function getInstance() 
     {
