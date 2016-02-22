@@ -408,7 +408,7 @@ abstract class AbstractTable implements TableInterface
      * to be set when creating this object.
      * @return array<string> - array of column names that may be null.
      */
-    public function getFieldsThatAllowNull();
+    abstract public function getFieldsThatAllowNull();
     
     
     /**
