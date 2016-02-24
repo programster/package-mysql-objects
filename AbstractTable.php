@@ -160,7 +160,7 @@ abstract class AbstractTable implements TableInterface
      * @param array $row - row of data to replace with.
      * @return mysqli_result
      */
-    public function replace($row)
+    public function replace(array $row)
     {
         $db = $this->getDb();
         
