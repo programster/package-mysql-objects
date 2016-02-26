@@ -112,6 +112,58 @@ abstract class AbstractTable implements TableInterface
     
     
     /**
+     * Load objects from the table that meet have all the attributes specified
+     * in the provided wherePairs parameter. 
+     * @param array $wherePairs - column-name/value pairs that the object must have in order
+     *                            to be fetched. the value in the pair may be an array to load
+     *                            any objects that have any one of those falues. 
+     *                            For example:
+     *                              id => array(1,2,3) would load objects that have ID 1,2, or 3.
+     * @return array<AbstractTableRowObject>
+     * @throws \Exception
+     */
+    public function loadWhereAnd(array $wherePairs)
+    {
+        $db = $this->getDb();
+        $query = $this->generateSelectWhereQuery($wherePairs, 'AND');
+        $result = $db->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new \Exception("Failed to load objects, check your where parameters.");
+        }
+        
+        return $this->convertMysqliResultToObjects($result);
+    }
+    
+    
+    /**
+     * Load objects from the table that meet meet ANY of the attributes specified
+     * in the provided wherePairs parameter. 
+     * @param array $wherePairs - column-name/value pairs that the object must have at least one of
+     *                            in order to be fetched. the value in the pair may be an array to 
+     *                            load any objects that have any one of those falues. 
+     *                            For example:
+     *                              id => array(1,2,3) would load objects that have ID 1,2, or 3.
+     * @return array<AbstractTableRowObject>
+     * @throws \Exception
+     */
+    public function loadWhereOr(array $wherePairs)
+    {
+        $db = $this->getDb();
+        $query = $this->generateSelectWhereQuery($wherePairs, 'AND');
+        $result = $db->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new \Exception("Failed to load objects, check your where parameters.");
+        }
+        
+        return $this->convertMysqliResultToObjects($result);
+    }
+    
+    
+    /**
      * Create a new object that represents a new row in the database.
      * @param array $row - name value pairs to create the object from.
      * @return AbstractTableRowObject
@@ -486,5 +538,50 @@ abstract class AbstractTable implements TableInterface
         }
         
         return $objects;
+    }
+    
+    
+    /**
+     * Helper function that generates the raw SQL string to send to the database in order to
+     * load objects that have any/all (depending on $conjunction) of the specified attributes.
+     * @param array $wherePairs - column-name/value pairs of attributes the objects must have to 
+     *                           be loaded.
+     * @param string $conjunction - 'AND' or 'OR' which changes whether the object needs all or 
+     *                              any of the specified attributes in order to be loaded.
+     * @return string - the raw sql string to send to the database.
+     * @throws \Exception - invalid $conjunction specified that was not 'OR' or 'AND'
+     */
+    protected function generateSelectWhereQuery(array $wherePairs, $conjunction)
+    {
+        $conjunction = strtoupper($conjunction);
+        
+        if (!in_array($conjunction, array('WHERE', 'OR')))
+        {
+            throw new \Exception('invalid conjunction specified');
+        }
+        
+        $whereStrings = array();
+        
+        foreach ($wherePairs as $attribute => $searchValue)
+        {
+            $whereString = "`" . $attribute . "` ";
+            
+            if (is_array($searchValue))
+            {
+                $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
+                $whereString .= " IN(" . explode(",", $searchValueWrapped)  . ")";
+            }
+            else
+            {
+                $whereString .= " = '" . $searchValue . "'";
+            }
+            
+            $whereStrings[] = $whereString;
+        }
+        
+        $query = "SELECT * FROM `" . $this->getTableName() . "` WHERE " . 
+                implode(" " . $conjunction . " ", $whereStrings);
+        
+        return $query;
     }
 }
