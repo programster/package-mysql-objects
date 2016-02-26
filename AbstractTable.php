@@ -33,7 +33,12 @@ abstract class AbstractTable implements TableInterface
         $objects = array();
         
         $query   = "SELECT * FROM `" . $this->getTableName() . "`";
-        $result  = $this->query($query, 'Error selecting all objects for loading.');
+        $result  = $this->getDb()->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new \Exception('Error selecting all objects for loading.');
+        }
         
         $constructor = $this->getRowObjectConstructorWrapper();
         
@@ -411,7 +416,13 @@ abstract class AbstractTable implements TableInterface
             $whereClause .
             " LIMIT " . $offset . "," . $limit;
         
-        $result = $this->query($query, 'Error selecting all objects.');
+        $result = $this->getDb()->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new Exception('Error selecting all objects.');
+        }
+        
         $constructor = $this->getRowObjectConstructorWrapper();
         
         if ($result->num_rows > 0)
