@@ -96,8 +96,6 @@ abstract class AbstractTable implements TableInterface
      */
     public function loadRange($offset, $numElements)
     {
-        $objects = array();
-        
         $query   = "SELECT * FROM `" . $this->getTableName() . "` " .
                    "LIMIT " . $offset . "," . $numElements;
         
@@ -109,17 +107,7 @@ abstract class AbstractTable implements TableInterface
            throw new \Exception('Error selecting all objects for loading. ' . $db->error); 
         }
         
-        if ($result->num_rows > 0)
-        {
-            $constructor = $this->getRowObjectConstructorWrapper();
-            
-            while (($row = $result->fetch_assoc()) != null)
-            {
-                $objects[] = $constructor($row);
-            }
-        }
-        
-        return $objects;
+        return $this->convertMysqliResultToObjects($result);
     }
     
     
@@ -473,5 +461,30 @@ abstract class AbstractTable implements TableInterface
     protected function updateCache(AbstractTableRowObject $object)
     {
         $this->m_objectCache[$object->get_id()] = $object;
+    }
+    
+    
+    /**
+     * Helper function that converts a query result into a collection of the row objects.
+     * @param \mysqli_result $result
+     * @return array<AbstractTableRowObject>
+     */
+    protected function convertMysqliResultToObjects(\mysqli_result $result)
+    {
+        $objects = array();
+        
+        if ($result->num_rows > 0)
+        {
+            $constructor = $this->getRowObjectConstructorWrapper();
+            
+            while (($row = $result->fetch_assoc()) != null)
+            {
+                $loadedObject = $constructor($row);
+                $this->updateCache($loadedObject);
+                $objects[] = $loadedObject;
+            }
+        }
+        
+        return $objects;
     }
 }
