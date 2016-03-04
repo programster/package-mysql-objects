@@ -296,7 +296,7 @@ abstract class AbstractTable implements TableInterface
     public function delete($id)
     {
         $query = "DELETE FROM `" . $this->getTableName() . "` WHERE `id`='" . $id . "'";
-        $result = $this->getDb->query($query);
+        $result = $this->getDb()->query($query);
         
         if ($result === FALSE)
         {
