@@ -114,4 +114,18 @@ interface TableInterface
      * @return array - the validated inputs
      */
     public function validateInputs(Array $data);
+    
+    
+    /**
+     * List the fields that allow null values
+     * @return array<string> - array of column names.
+     */
+    public function getFieldsThatAllowNull();
+    
+    
+    /**
+     * List the fields that have default values.
+     * @return array<string> - array of column names.
+     */
+    public function getFieldsThatHaveDefaults();
 }

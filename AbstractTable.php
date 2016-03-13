@@ -184,7 +184,7 @@ abstract class AbstractTable implements TableInterface
         
         if ($result === FALSE)
         {
-            throw new \Exception("replace query failed: " . $db->error);
+            throw new \Exception("Insert query failed: " . $db->error);
         }
         
         $insertId = $db->insert_id;
@@ -460,6 +460,14 @@ abstract class AbstractTable implements TableInterface
      * @return array<string> - array of column names that may be null.
      */
     abstract public function getFieldsThatAllowNull();
+    
+    
+    /**
+     * Get the user to specify fields that have default values and thus don't have
+     * to be set when creating this object.
+     * @return array<string> - array of column names that may be null.
+     */
+    abstract public function getFieldsThatHaveDefaults();
     
     
     /**

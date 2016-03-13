@@ -123,23 +123,28 @@ abstract class AbstractTableRowObject
         foreach ($setMethods as $columnName => $callback)
         {
             /* @var $callback Callback */
-            if 
-            (
-                !isset($row[$columnName])
-                && !in_array($columnName, $this->getTableHandler()->getFieldsThatAllowNull())
-            )
+            if ( !isset($row[$columnName]) )
             {
-                $errMsg = $columnName . ' has not yet been created in the mysql table for: ' . 
-                          get_class($this);
-                
-                throw new \Exception($errMsg);
+                if 
+                (
+                    !in_array($columnName, $this->getTableHandler()->getFieldsThatAllowNull())
+                    && !in_array($columnName, $this->getTableHandler()->getFieldsThatHaveDefaults())
+                )
+                {
+                    $errMsg = $columnName . ' has not yet been created in the mysql table for: ' . 
+                              get_class($this);
+                    
+                    throw new \Exception($errMsg);
+                }
             }
-            
-            $value = $row[$columnName];
-            
-            if (!empty($value))
+            else
             {
-                $callback($value);
+                $value = $row[$columnName];
+                
+                if (!empty($value))
+                {
+                    $callback($value);
+                }
             }
         }
     }
