@@ -140,11 +140,7 @@ abstract class AbstractTableRowObject
             else
             {
                 $value = $row[$columnName];
-                
-                if (!empty($value))
-                {
-                    $callback($value);
-                }
+                $callback($value);
             }
         }
     }
