@@ -25,11 +25,13 @@ abstract class AbstractTable implements TableInterface
     
     /**
      * Loads all of these objects from the database.
+     * This also clears and fully loads the cache.
      * @param void
      * @return array
      */
     public function loadAll()
     {
+        $this->emptyCache();
         $objects = array();
         
         $query   = "SELECT * FROM `" . $this->getTableName() . "`";
@@ -46,7 +48,9 @@ abstract class AbstractTable implements TableInterface
         {
             while (($row = $result->fetch_assoc()) != null)
             {
-                $objects[] = $constructor($row);
+                $object = $constructor($row);
+                $this->updateCache($object);
+                $objects[] = $object;
             }
         }
         
