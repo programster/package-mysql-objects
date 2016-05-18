@@ -578,7 +578,7 @@ abstract class AbstractTable implements TableInterface
     {
         $conjunction = strtoupper($conjunction);
         
-        if (!in_array($conjunction, array('WHERE', 'OR')))
+        if (!in_array($conjunction, array('AND', 'OR')))
         {
             throw new \Exception('invalid conjunction specified');
         }
