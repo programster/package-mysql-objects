@@ -76,7 +76,7 @@ abstract class AbstractTableRowObject
             $properties[$mysqlColumnName] = $property;
         }
         
-        if ($this->get_id() == null)
+        if (!isset($this->m_id) || $this->m_id == null)
         {
             $createdObject = $this->getTableHandler()->create($properties);
             $this->m_id = $createdObject->get_id();
