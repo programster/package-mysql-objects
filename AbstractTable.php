@@ -239,8 +239,8 @@ abstract class AbstractTable implements TableInterface
         # This logic must not ever be changed to load the row object and then call update on that 
         # because it's update method will call this method and you will end up with a loop.
         $query =
-            "UPDATE `" . $this->getTableName() . "`" . 
-            "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $this->getDb()) . 
+            "UPDATE `" . $this->getTableName() . "` " . 
+            "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $this->getDb()) . " " .
             "WHERE `id`='" . $id . "'";
         
         $result = $this->getDb()->query($query);
@@ -415,10 +415,10 @@ abstract class AbstractTable implements TableInterface
         }
         
         $query = 
-            "SELECT *" . 
-            " FROM `" . $this->getTableName() . "` " . 
-            $whereClause .
-            " LIMIT " . $offset . "," . $limit;
+            "SELECT * " . 
+            "FROM `" . $this->getTableName() . "` " . 
+            $whereClause . " " . 
+            "LIMIT " . $offset . "," . $limit;
         
         $result = $this->getDb()->query($query);
         
