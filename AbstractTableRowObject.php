@@ -109,10 +109,28 @@ abstract class AbstractTableRowObject
     /**
      * Helper to the constructor. Create this object from the passed in inputs.
      * @param array $row - name value pairs of column to values
+     * @param array $row_field_types - optional array of field-name/type pairs. For the possible
+     *                                 types, refer to http://bit.ly/2af5tyx              
      * @throws \Exception
      */
-    protected function initializeFromArray($row)
+    protected function initializeFromArray($row, $row_field_types=null)
     {
+        $intFieldTypes = array(
+            1, // tinyint,
+            2, // smallint,
+            3, // int,
+            8, // bigint,
+            9, // mediumint,
+            16, // bit,
+            7 // timestamp # we could possibly convert this to a date...
+        );
+        
+        $floatFieldTypes = array(
+            4, // float,
+            5, // double,
+            246 // decimal
+        );
+        
         if (isset($row['id']))
         {
             $this->m_id = $row['id'];
@@ -140,7 +158,32 @@ abstract class AbstractTableRowObject
             else
             {
                 $value = $row[$columnName];
-                $callback($value);
+                
+                if 
+                (
+                    $row_field_types != null
+                    && isset($row_field_types[$columnName])
+                )
+                {
+                    $fieldType = $row_field_types[$columnName];
+                    
+                    if (in_array($fieldType, $floatFieldTypes))
+                    {
+                        $callback(float_val($value));
+                    }
+                    else if (in_array($fieldType, $intFieldTypes))
+                    {
+                        $callback(intval($value));
+                    }
+                    else
+                    {
+                        $callback($value);
+                    }
+                }
+                else
+                {
+                    $callback($value);
+                }
             }
         }
     }

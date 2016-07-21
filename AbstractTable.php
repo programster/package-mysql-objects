@@ -42,19 +42,7 @@ abstract class AbstractTable implements TableInterface
             throw new \Exception('Error selecting all objects for loading.');
         }
         
-        $constructor = $this->getRowObjectConstructorWrapper();
-        
-        if ($result->num_rows > 0)
-        {
-            while (($row = $result->fetch_assoc()) != null)
-            {
-                $object = $constructor($row);
-                $this->updateCache($object);
-                $objects[] = $object;
-            }
-        }
-        
-        return $objects;
+        return $this->convertMysqliResultToObjects($result);
     }
     
     
@@ -73,6 +61,8 @@ abstract class AbstractTable implements TableInterface
         {
             $db = $this->getDb();
             $query = "SELECT * FROM `" . $this->getTableName() . "` WHERE `id`='" . $id . "'";
+            
+            /* @var $result \mysqli_result */
             $result = $db->query($query);
             
             if ($result === FALSE)
@@ -88,7 +78,14 @@ abstract class AbstractTable implements TableInterface
             
             $row = $result->fetch_assoc();
             
-            $object = $constructor($row);
+            $fieldInfoMap = array();
+            for ($i=0; $i<$result->field_count; $i++)
+            {
+                $fieldInfo = $result->fetch_field_direct($i);
+                $fieldInfoMap[$fieldInfo->name] = $fieldInfo->type;
+            }
+            
+            $object = $constructor($row, $fieldInfoMap);
             $this->m_objectCache[$id] = $object;
         }
         
@@ -481,7 +478,19 @@ abstract class AbstractTable implements TableInterface
      *                     the created object
      *                     e.g. $returnObj = function($row){ return new rowObject($row); }
      */
-    public abstract function getRowObjectConstructorWrapper();
+    public function getRowObjectConstructorWrapper()
+    {
+        $objectClassName = $this->getObjectClassName();
+        
+        $constructor = function($row, $row_field_types=null) use($objectClassName){ 
+            return new $objectClassName($row, $row_field_types); 
+        };
+        
+        return $constructor;
+    }
+    
+    
+    public abstract function getObjectClassName();
     
     
     /**
@@ -552,9 +561,17 @@ abstract class AbstractTable implements TableInterface
         {
             $constructor = $this->getRowObjectConstructorWrapper();
             
+            $fieldInfoMap = array();
+            
+            for ($i=0; $i<$result->field_count; $i++)
+            {
+                $fieldInfo = $result->fetch_field_direct($i);
+                $fieldInfoMap[$fieldInfo->name] = $fieldInfo->type;
+            }
+            
             while (($row = $result->fetch_assoc()) != null)
             {
-                $loadedObject = $constructor($row);
+                $loadedObject = $constructor($row, $fieldInfoMap);
                 $this->updateCache($loadedObject);
                 $objects[] = $loadedObject;
             }
