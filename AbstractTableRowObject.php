@@ -169,7 +169,7 @@ abstract class AbstractTableRowObject
                     
                     if (in_array($fieldType, $floatFieldTypes))
                     {
-                        $callback(float_val($value));
+                        $callback(floatval($value));
                     }
                     else if (in_array($fieldType, $intFieldTypes))
                     {
