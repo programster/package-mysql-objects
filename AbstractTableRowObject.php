@@ -121,8 +121,7 @@ abstract class AbstractTableRowObject
             3, // int,
             8, // bigint,
             9, // mediumint,
-            16, // bit,
-            7 // timestamp # we could possibly convert this to a date...
+            16 // bit,
         );
         
         $floatFieldTypes = array(
