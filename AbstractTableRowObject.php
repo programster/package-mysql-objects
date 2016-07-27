@@ -168,11 +168,21 @@ abstract class AbstractTableRowObject
                     
                     if (in_array($fieldType, $floatFieldTypes))
                     {
+                        if ($value !== null)
+                        {
+                            $value = floatval($value);
+                        }
+                        
                         $callback(floatval($value));
                     }
                     else if (in_array($fieldType, $intFieldTypes))
                     {
-                        $callback(intval($value));
+                        if ($value !== null)
+                        {
+                            $value = intval($value);
+                        }
+                        
+                        $callback($value);
                     }
                     else
                     {
@@ -234,3 +244,4 @@ abstract class AbstractTableRowObject
     # Accessors
     public function get_id() { return $this->m_id; }
 }
+
