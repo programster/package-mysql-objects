@@ -55,12 +55,50 @@ abstract class AbstractTable implements TableInterface
      */
     public function load($id, $useCache=true)
     {
-        $constructor = $this->getRowObjectConstructorWrapper();
+        $objects = $this->loadIds(array($id), $useCache);
         
-        if (!isset($this->m_objectCache[$id]) || !$useCache)
+        if (count($objects == 0))
+        {
+            $msg = 'There is no ' . $this->getTableName() .  ' objects with id: ' . $id;
+            throw new NoSuchIdException($msg);
+        }
+        
+        return $objects[0];
+    }
+    
+    
+    /**
+     * Loads a single object of this class's type from the database using the unique row_id
+     * @param array ids - the list of IDs of the rows in the datatabase table.
+     * @param bool useCache - optionally set to false to force a database lookup even if we have a
+     *                        cached value from a previous lookup.
+     * @return array<AbstractTableRowObject> - list of the objects with the specified IDs.
+     */
+    public function loadIds(array $ids, $useCache=true)
+    {
+        $loadedObjects = array();
+        $constructor = $this->getRowObjectConstructorWrapper();
+        $idsToFetch = array();
+        
+        foreach ($ids as $id)
+        {
+            if (!isset($this->m_objectCache[$id]) || !$useCache)
+            {
+                $idsToFetch[] = $id;
+            }
+            else
+            {
+                $loadedObjects[$id] = $this->m_objectCache[$id];
+            }
+        }
+        
+        if (count($idsToFetch) > 0)
         {
             $db = $this->getDb();
-            $query = "SELECT * FROM `" . $this->getTableName() . "` WHERE `id`='" . $id . "'";
+            $escapedIdsToFetch = \iRAP\CoreLibs\MysqliLib::escapeValues($idsToFetch, $db);
+            $idsToFetchWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($escapedIdsToFetch, "'");
+            
+            $query = "SELECT * FROM `" . $this->getTableName() . "` WHERE `id` IN(" . implode(", ", $idsToFetchWrapped) . ")";
             
             /* @var $result \mysqli_result */
             $result = $db->query($query);
@@ -68,12 +106,6 @@ abstract class AbstractTable implements TableInterface
             if ($result === FALSE)
             {
                 throw new \Exception("Failed to select from table. " . $db->error);
-            }
-            
-            if ($result->num_rows == 0)
-            {
-                $msg = 'There is no ' . $this->getTableName() .  ' object with id: ' . $id;
-                throw new NoSuchIdException($msg);
             }
             
             $row = $result->fetch_assoc();
@@ -86,10 +118,12 @@ abstract class AbstractTable implements TableInterface
             }
             
             $object = $constructor($row, $fieldInfoMap);
-            $this->m_objectCache[$id] = $object;
+            $objectId = $row['id'];
+            $this->m_objectCache[$objectId] = $object;
+            $loadedObjects[$objectId] = $this->m_objectCache[$objectId];
         }
         
-        return $this->m_objectCache[$id];
+        return $loadedObjects;
     }
     
     
