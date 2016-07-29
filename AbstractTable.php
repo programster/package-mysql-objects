@@ -57,13 +57,13 @@ abstract class AbstractTable implements TableInterface
     {
         $objects = $this->loadIds(array($id), $useCache);
         
-        if (count($objects == 0))
+        if (count($objects) == 0)
         {
-            $msg = 'There is no ' . $this->getTableName() .  ' objects with id: ' . $id;
+            $msg = 'There is no ' . $this->getTableName() .  ' object with id: ' . $id;
             throw new NoSuchIdException($msg);
         }
         
-        return $objects[0];
+        return \iRAP\CoreLibs\ArrayLib::getFirstElement($objects);
     }
     
     
