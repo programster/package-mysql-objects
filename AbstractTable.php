@@ -68,8 +68,9 @@ abstract class AbstractTable implements TableInterface
     
     
     /**
-     * Loads a single object of this class's type from the database using the unique row_id
-     * @param array ids - the list of IDs of the rows in the datatabase table.
+     * Loads a number of objects of this class's type from the database using the provided array
+     * list of IDs.
+     * @param array ids - the list of IDs of the objects we wish to load.
      * @param bool useCache - optionally set to false to force a database lookup even if we have a
      *                        cached value from a previous lookup.
      * @return array<AbstractTableRowObject> - list of the objects with the specified IDs.
