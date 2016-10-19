@@ -325,6 +325,7 @@ abstract class AbstractTable implements TableInterface
     
     /**
      * Removes the obejct from the mysql database.
+     * @TODO - have this method use the deleteIds() method which requires a different return type.
      * @param int $id - the ID of the object we wish to delete.
      * @return mysqli_result
      * @throws \Exception - if query failed, returning FALSE.
@@ -336,11 +337,41 @@ abstract class AbstractTable implements TableInterface
         
         if ($result === FALSE)
         {
-            throw new \Exception('Failed to delete ' . $this->getTableName() .  ' with row id: ' . $id);
+            throw new \Exception('Failed to delete ' . $this->getTableName() .  ' with id: ' . $id);
         }
         
         $this->unsetCache($id);
         return $result;
+    }
+    
+    
+    /**
+     * Deletes objects that have the any of the specified IDs. This will not throw an error or
+     * exception if an object with one of the IDs specified does not exist.
+     * This is a fast and cache-friendly operation.
+     * @param array $ids - the list of IDs of the objects we wish to delete.
+     * @return int - the number of objects deleted.
+     */
+    public function deleteIds(array $ids)
+    {
+        $db = $this->getDb();
+        $idsToDelete = \iRAP\CoreLibs\MysqliLib::escapeValues($ids, $db);
+        $wherePairs = array("id" => $idsToDelete);
+        $query = $this->generateDeleteWhereQuery($wherePairs, "AND");
+        $result = $db->query($query);
+        
+        if ($result == FALSE)
+        {
+            throw new Exception("Failed to delete objects by ID.");
+        }
+        
+        # Remove these objects from our cache.
+        foreach ($ids as $objectId)
+        {
+            $this->unsetCache($objectId);
+        }
+        
+        return $db->affected_rows;
     }
     
     
@@ -379,93 +410,79 @@ abstract class AbstractTable implements TableInterface
         return $result;
     }
     
+    
     /**
      * Delete rows from the table that meet have all the attributes specified
      * in the provided wherePairs parameter. 
+     * WARNING - by default this will clear your cache. You can manually set clearCache to false
+     *           if you know what you are doing, but you may wish to delete by ID instead which
+     *           will be cache-optimised. We clear the cache to prevent loading cached objects
+     *           from memory when they were previously deleted using one of these methods.
      * @param array $wherePairs - column-name/value pairs that the object must have in order
-     *                            to be fetched. the value in the pair may be an array to delete
-     *                            any objects that have any one of those falues. 
+     *                            to be deleted. the value in the pair may be an array to delete
+     *                            any objects that have any one of those values. 
      *                            For example:
      *                              id => array(1,2,3) would delete objects that have ID 1,2, or 3.
-     * @return array<AbstractTableRowObject>
+     * @param bool $clearCache - optionally set to false to not have this operation clear the 
+     *                           cache afterwards.
+     * @return int - the number of rows/objects that were deleted.
      * @throws \Exception
      */
-    public function deleteWhereAnd(array $wherePairs)
+    public function deleteWhereAnd(array $wherePairs, $clearCache=true)
     {
         $db = $this->getDb();
-        $whereString = array();
-        foreach ($wherePairs as $attribute => $searchValue)
-        {
-            $whereString = "`" . $attribute . "` ";
-            
-            if (is_array($searchValue))
-            {
-                $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
-                $whereString .= " IN(" . explode(",", $searchValueWrapped)  . ")";
-            }
-            else
-            {
-                $whereString .= " = '" . $searchValue . "'";
-            }
-            
-            $whereStrings[] = $whereString;
-        }
-        
-        $query = "DELETE FROM `" . $this->getTableName() . "` WHERE " . 
-                implode(" AND ", $whereStrings);
+        $query = $this->generateDeleteWhereQuery($wherePairs, "AND");
+        /* @var $result \mysqli_result */
         $result = $db->query($query);
         
         if ($result === FALSE)
         {
-            throw new \Exception("Failed to load objects, check your where parameters.");
+            throw new \Exception("Failed to delete objects, check your where parameters.");
         }
         
-        return $this->convertMysqliResultToObjects($result);
+        if ($clearCache)
+        {
+            $this->emptyCache();
+        }
+        
+        return mysqli_affected_rows($db);
     }
     
     
     /**
      * Delete rows from the table that meet meet ANY of the attributes specified
      * in the provided wherePairs parameter. 
+     * WARNING - by default this will clear your cache. You can manually set clearCache to false
+     *           if you know what you are doing, but you may wish to delete by ID instead which
+     *           will be cache-optimised. We clear the cache to prevent loading cached objects
+     *           from memory when they were previously deleted using one of these methods.
      * @param array $wherePairs - column-name/value pairs that the object must have at least one of
      *                            in order to be fetched. the value in the pair may be an array to 
      *                            delete any objects that have any one of those falues. 
      *                            For example:
      *                              id => array(1,2,3) would delete objects that have ID 1,2, or 3.
+     * @param bool $clearCache - optionally set to false to not have this operation clear the 
+     *                           cache afterwards.
      * @return array<AbstractTableRowObject>
      * @throws \Exception
      */
-    public function deleteWhereOr(array $wherePairs)
+    public function deleteWhereOr(array $wherePairs, $clearCache=true)
     {
         $db = $this->getDb();
-         $whereString = array();
-        foreach ($wherePairs as $attribute => $searchValue)
-        {
-            $whereString = "`" . $attribute . "` ";
-            
-            if (is_array($searchValue))
-            {
-                $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
-                $whereString .= " IN(" . explode(",", $searchValueWrapped)  . ")";
-            }
-            else
-            {
-                $whereString .= " = '" . $searchValue . "'";
-            }
-            
-            $whereStrings[] = $whereString;
-        }
-        
-        $query = "DELETE FROM `" . $this->getTableName() . "` WHERE " . 
-                implode(" OR ", $whereStrings);
+        $query = $this->generateDeleteWhereQuery($wherePairs, "OR");
         $result = $db->query($query);
         
         if ($result === FALSE)
         {
-            throw new \Exception("Failed to load objects, check your where parameters.");
+            throw new \Exception("Failed to delete objects, check your where parameters.");
         }
         
-        return $this->convertMysqliResultToObjects($result);
+        if ($clearCache)
+        {
+            $this->emptyCache();
+        }
+        
+        return mysqli_affected_rows($db);
     }
     
     
@@ -627,6 +644,7 @@ abstract class AbstractTable implements TableInterface
     /**
      * Remove the cache entry for an object.
      * This should only happen when objects are destroyed.
+     * This will not throw exception/error if id doesn't exist.
      * @param int $objectId - the ID of the object we wish to clear the cache of.
      */
     public function unsetCache($objectId)
@@ -717,11 +735,47 @@ abstract class AbstractTable implements TableInterface
      */
     protected function generateSelectWhereQuery(array $wherePairs, $conjunction)
     {
-        $conjunction = strtoupper($conjunction);
+        $query = "SELECT * FROM `" . $this->getTableName() . "` " . 
+                $this->generateWhereClause($wherePairs, $conjunction);
         
-        if (!in_array($conjunction, array('AND', 'OR')))
+        return $query;
+    }
+    
+    
+    /**
+     * Helper function that generates the raw SQL string to send to the database in order to
+     * delete objects that have any/all (depending on $conjunction) of the specified attributes.
+     * @param array $wherePairs - column-name/value pairs of attributes the objects must have to 
+     *                           be deleted.
+     * @param string $conjunction - 'AND' or 'OR' which changes whether the object needs all or 
+     *                              any of the specified attributes in order to be loaded.
+     * @return string - the raw sql string to send to the database.
+     * @throws \Exception - invalid $conjunction specified that was not 'OR' or 'AND'
+     */
+    protected function generateDeleteWhereQuery(array $wherePairs, $conjunction)
+    {
+        $query = "DELETE FROM `" . $this->getTableName() . "` " . 
+                $this->generateWhereClause($wherePairs, $conjunction);
+        
+        return $query;
+    }
+    
+    
+    /**
+     * Generate the "where" part of a query based on name/value pairs and the provided conjunction
+     * @param array $wherePairs - column/value pairs for where clause. Value may or may not be an
+     *                            array list of values for WHERE IN().
+     * @param string $conjunction - one of "AND" or "OR" for if all/any of criteria need to be met
+     * @return string - the where clause of a query such as "WHERE `id`='3'"
+     */
+    protected function generateWhereClause($wherePairs, $conjunction)
+    {
+        $conjunction = strtoupper($conjunction);
+        $possibleConjunctions = array("AND", "OR");
+        
+        if (!in_array($conjunction, $possibleConjunctions))
         {
-            throw new \Exception('invalid conjunction specified');
+            throw new Exception("Invalid conjunction: " . $conjunction);
         }
         
         $whereStrings = array();
@@ -743,9 +797,7 @@ abstract class AbstractTable implements TableInterface
             $whereStrings[] = $whereString;
         }
         
-        $query = "SELECT * FROM `" . $this->getTableName() . "` WHERE " . 
-                implode(" " . $conjunction . " ", $whereStrings);
-        
-        return $query;
+        $clause = "WHERE " . implode(" " . $conjunction . " ", $whereStrings);
+        return $clause;
     }
 }
