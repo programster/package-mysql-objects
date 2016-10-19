@@ -191,7 +191,7 @@ abstract class AbstractTable implements TableInterface
     public function loadWhereOr(array $wherePairs)
     {
         $db = $this->getDb();
-        $query = $this->generateSelectWhereQuery($wherePairs, 'AND');
+        $query = $this->generateSelectWhereQuery($wherePairs, 'OR');
         $result = $db->query($query);
         
         if ($result === FALSE)
@@ -376,6 +376,95 @@ abstract class AbstractTable implements TableInterface
         
         $this->emptyCache();
         return $result;
+    }
+    
+    /**
+     * Delete rows from the table that meet have all the attributes specified
+     * in the provided wherePairs parameter. 
+     * @param array $wherePairs - column-name/value pairs that the object must have in order
+     *                            to be fetched. the value in the pair may be an array to delete
+     *                            any objects that have any one of those falues. 
+     *                            For example:
+     *                              id => array(1,2,3) would delete objects that have ID 1,2, or 3.
+     * @return array<AbstractTableRowObject>
+     * @throws \Exception
+     */
+    public function deleteWhereAnd(array $wherePairs)
+    {
+        $db = $this->getDb();
+        $whereString = array();
+        foreach ($wherePairs as $attribute => $searchValue)
+        {
+            $whereString = "`" . $attribute . "` ";
+            
+            if (is_array($searchValue))
+            {
+                $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
+                $whereString .= " IN(" . explode(",", $searchValueWrapped)  . ")";
+            }
+            else
+            {
+                $whereString .= " = '" . $searchValue . "'";
+            }
+            
+            $whereStrings[] = $whereString;
+        }
+        
+        $query = "DELETE FROM `" . $this->getTableName() . "` WHERE " . 
+                implode(" AND ", $whereStrings);
+        $result = $db->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new \Exception("Failed to load objects, check your where parameters.");
+        }
+        
+        return $this->convertMysqliResultToObjects($result);
+    }
+    
+    
+    /**
+     * Delete rows from the table that meet meet ANY of the attributes specified
+     * in the provided wherePairs parameter. 
+     * @param array $wherePairs - column-name/value pairs that the object must have at least one of
+     *                            in order to be fetched. the value in the pair may be an array to 
+     *                            delete any objects that have any one of those falues. 
+     *                            For example:
+     *                              id => array(1,2,3) would delete objects that have ID 1,2, or 3.
+     * @return array<AbstractTableRowObject>
+     * @throws \Exception
+     */
+    public function deleteWhereOr(array $wherePairs)
+    {
+        $db = $this->getDb();
+         $whereString = array();
+        foreach ($wherePairs as $attribute => $searchValue)
+        {
+            $whereString = "`" . $attribute . "` ";
+            
+            if (is_array($searchValue))
+            {
+                $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
+                $whereString .= " IN(" . explode(",", $searchValueWrapped)  . ")";
+            }
+            else
+            {
+                $whereString .= " = '" . $searchValue . "'";
+            }
+            
+            $whereStrings[] = $whereString;
+        }
+        
+        $query = "DELETE FROM `" . $this->getTableName() . "` WHERE " . 
+                implode(" OR ", $whereStrings);
+        $result = $db->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new \Exception("Failed to load objects, check your where parameters.");
+        }
+        
+        return $this->convertMysqliResultToObjects($result);
     }
     
     
