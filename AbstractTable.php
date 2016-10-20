@@ -787,7 +787,7 @@ abstract class AbstractTable implements TableInterface
             if (is_array($searchValue))
             {
                 $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
-                $whereString .= " IN(" . explode(",", $searchValueWrapped)  . ")";
+                $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
             }
             else
             {
