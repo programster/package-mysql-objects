@@ -362,7 +362,7 @@ abstract class AbstractTable implements TableInterface
         
         if ($result == FALSE)
         {
-            throw new Exception("Failed to delete objects by ID.");
+            throw new \Exception("Failed to delete objects by ID.");
         }
         
         # Remove these objects from our cache.
@@ -391,7 +391,7 @@ abstract class AbstractTable implements TableInterface
             
             if ($result === FALSE)
             {
-                throw new Exception('Failed to drop table: ' . $this->getTableName());
+                throw new \Exception('Failed to drop table: ' . $this->getTableName());
             }
         }
         else
@@ -402,7 +402,7 @@ abstract class AbstractTable implements TableInterface
             
             if ($result === FALSE)
             {
-                throw new Exception('Failed to drop table: ' . $this->getTableName());
+                throw new \Exception('Failed to drop table: ' . $this->getTableName());
             }
         }
         
@@ -562,7 +562,7 @@ abstract class AbstractTable implements TableInterface
         
         if ($result === FALSE)
         {
-            throw new Exception('Error selecting all objects.');
+            throw new \Exception('Error selecting all objects.');
         }
         
         $constructor = $this->getRowObjectConstructorWrapper();
@@ -775,7 +775,7 @@ abstract class AbstractTable implements TableInterface
         
         if (!in_array($conjunction, $possibleConjunctions))
         {
-            throw new Exception("Invalid conjunction: " . $conjunction);
+            throw new \Exception("Invalid conjunction: " . $conjunction);
         }
         
         $whereStrings = array();
