@@ -99,7 +99,8 @@ abstract class AbstractTable implements TableInterface
             $escapedIdsToFetch = \iRAP\CoreLibs\MysqliLib::escapeValues($idsToFetch, $db);
             $idsToFetchWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($escapedIdsToFetch, "'");
             
-            $query = "SELECT * FROM `" . $this->getTableName() . "` WHERE `id` IN(" . implode(", ", $idsToFetchWrapped) . ")";
+            $query = "SELECT * FROM `" . $this->getTableName() . "` " . 
+                     "WHERE `id` IN(" . implode(", ", $idsToFetchWrapped) . ")";
             
             /* @var $result \mysqli_result */
             $result = $db->query($query);
@@ -109,19 +110,21 @@ abstract class AbstractTable implements TableInterface
                 throw new \Exception("Failed to select from table. " . $db->error);
             }
             
-            $row = $result->fetch_assoc();
-            
             $fieldInfoMap = array();
+            
             for ($i=0; $i<$result->field_count; $i++)
             {
                 $fieldInfo = $result->fetch_field_direct($i);
                 $fieldInfoMap[$fieldInfo->name] = $fieldInfo->type;
             }
             
-            $object = $constructor($row, $fieldInfoMap);
-            $objectId = $row['id'];
-            $this->m_objectCache[$objectId] = $object;
-            $loadedObjects[$objectId] = $this->m_objectCache[$objectId];
+            while (($row = $result->fetch_assoc()) != null)
+            {
+                $object = $constructor($row, $fieldInfoMap);
+                $objectId = $row['id'];
+                $this->m_objectCache[$objectId] = $object;
+                $loadedObjects[$objectId] = $this->m_objectCache[$objectId];
+            }
         }
         
         return $loadedObjects;
