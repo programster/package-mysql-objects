@@ -69,11 +69,13 @@ abstract class AbstractTable implements TableInterface
     
     /**
      * Loads a number of objects of this class's type from the database using the provided array
-     * list of IDs.
+     * list of IDs. If any of the objects are already in the cache, they are fetched from there.
+     * NOTE: The returned array of objects is indexed by the IDs of the objects.
      * @param array ids - the list of IDs of the objects we wish to load.
      * @param bool useCache - optionally set to false to force a database lookup even if we have a
      *                        cached value from a previous lookup.
-     * @return array<AbstractTableRowObject> - list of the objects with the specified IDs.
+     * @return array<AbstractTableRowObject> - list of the objects with the specified IDs indexed
+     *                                         by the objects ID.
      */
     public function loadIds(array $ids, $useCache=true)
     {
