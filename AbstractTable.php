@@ -527,7 +527,7 @@ abstract class AbstractTable implements TableInterface
         
         if (isset($parameters['in_id']))
         {
-            if (!is_array($parameters['in_id']))
+            if (is_array($parameters['in_id']))
             {
                 $possibleIds = array();
                 $idArray = $parameters['in_id'];
