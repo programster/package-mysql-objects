@@ -184,6 +184,33 @@ abstract class AbstractTable implements TableInterface
     
     
     /**
+     * Load objects from the table that meet the specified WHERE statement.
+     * 
+     * WARNING: Unlike other load methods, this one takes the whole WHERE statement, so does not
+     * do any escaping of the values
+     * 
+     * @param string $where - the complete WHERE statement, minus the WHERE keyword and subsequent
+     *                          space. 
+     *                            For example:
+     *                              "name = 'John Smith'" would result in "WHERE name = 'John Smith'"
+     * @return array<AbstractTableRowObject>
+     * @throws \Exception
+     */
+    public function loadWhereExplicit($where)
+    {
+        $db = $this->getDb();
+        $query = "SELECT * FROM `" . $this->getTableName() . "` WHERE ".$where;
+        $result = $db->query($query);
+        
+        if ($result === FALSE)
+        {
+            throw new \Exception("Failed to load objects, check your where parameters.");
+        }
+        
+        return $this->convertMysqliResultToObjects($result);
+    }
+    
+    /**
      * Load objects from the table that meet meet ANY of the attributes specified
      * in the provided wherePairs parameter. 
      * @param array $wherePairs - column-name/value pairs that the object must have at least one of
