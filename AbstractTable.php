@@ -561,10 +561,10 @@ abstract class AbstractTable implements TableInterface
                 
                 foreach ($idArray as $idInput)
                 {
-                    $possibleIds[] = '"' . intval($idInput) . "'";
+                    $possibleIds[] = intval($idInput);
                 }
                 
-                $whereClauses[] = "`id` IN (" . implode(",", $possibleIds) . ")'";
+                $whereClauses[] = "`id` IN (" . implode(",", $possibleIds) . ")";
             }
             else
             {
