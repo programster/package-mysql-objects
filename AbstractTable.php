@@ -821,23 +821,7 @@ abstract class AbstractTable implements TableInterface
             {
                 if (count($searchValue) === 0)
                 {
-                    // A switch would seem more appropriate here, but I would have to use a 
-                    // "continue 2" which I really didn't like so I went with an if 
-                    // statement.
-                    if ($upperConjunction === "AND")
-                    {
-                        // always return no results if AND on empty list as there can't be any
-                        // matches
-                        $whereString = "FALSE";
-                    }
-                    elseif ($upperConjunction === "OR")
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        throw new \Exception("Unrecognized conjunction: $upperConjunction");
-                    }
+                    $whereString = "FALSE";
                 }
                 else
                 {
