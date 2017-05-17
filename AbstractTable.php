@@ -802,12 +802,13 @@ abstract class AbstractTable implements TableInterface
      */
     protected function generateWhereClause($wherePairs, $conjunction)
     {
-        $conjunction = strtoupper($conjunction);
+        $whereClause = "";
+        $upperConjunction = strtoupper($conjunction);
         $possibleConjunctions = array("AND", "OR");
         
-        if (!in_array($conjunction, $possibleConjunctions))
+        if (!in_array($upperConjunction, $possibleConjunctions))
         {
-            throw new \Exception("Invalid conjunction: " . $conjunction);
+            throw new \Exception("Invalid conjunction: " . $upperConjunction);
         }
         
         $whereStrings = array();
@@ -818,8 +819,31 @@ abstract class AbstractTable implements TableInterface
             
             if (is_array($searchValue))
             {
-                $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
-                $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
+                if (count($searchValue) === 0)
+                {
+                    // A switch would seem more appropriate here, but I would have to use a 
+                    // "continue 2" which I really didn't like so I went with an if 
+                    // statement.
+                    if ($upperConjunction === "AND")
+                    {
+                        // always return no results if AND on empty list as there can't be any
+                        // matches
+                        $whereString = "FALSE";
+                    }
+                    elseif ($upperConjunction === "OR")
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        throw new \Exception("Unrecognized conjunction: $upperConjunction");
+                    }
+                }
+                else
+                {
+                    $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
+                    $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
+                }
             }
             else
             {
@@ -829,7 +853,11 @@ abstract class AbstractTable implements TableInterface
             $whereStrings[] = $whereString;
         }
         
-        $clause = "WHERE " . implode(" " . $conjunction . " ", $whereStrings);
-        return $clause;
+        if (count($whereStrings) > 0)
+        {
+            $whereClause = "WHERE " . implode(" " . $upperConjunction . " ", $whereStrings);
+        }
+        
+        return $whereClause;
     }
 }
