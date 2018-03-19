@@ -14,6 +14,8 @@ $migrationManager = new iRAP\Migrations\MigrationManager(
     ConnectionHandler::getDb()
 );
 
+$migrationManager->migrate();
+
 $testFiles = \iRAP\CoreLibs\Filesystem::getDirContents(__DIR__ . '/tests');
 
 foreach ($testFiles as $testFile)
@@ -21,6 +23,14 @@ foreach ($testFiles as $testFile)
     $baseName = basename($testFile);
     $testName = str_replace(".php", "", $baseName);
     
-    $test = new $testName();
-    $test->run();
+    try
+    {
+        $test = new $testName();
+        $test->run();
+        print "{$testName}: PASSED" . PHP_EOL;
+    } 
+    catch (Exception $ex) 
+    {
+        print "{$testName}: FAILED - {$ex->getMessage()}" . PHP_EOL;
+    }
 }

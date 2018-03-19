@@ -6,7 +6,7 @@
  * and open the template in the editor.
  */
 
-class UuidUserRecord extends \iRAP\MysqlObjects\AbstractUuidTableRowObject
+class UuidUserRecord extends iRAP\MysqlObjects\AbstractUuidTableRowObject
 {
     protected $m_email;
     protected $m_name;

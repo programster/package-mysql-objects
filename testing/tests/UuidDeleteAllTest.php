@@ -1,15 +1,22 @@
 <?php
 
 /* 
- * 
+ * Test that running deleteAll on a UUID table works.
  */
 
-class UuidTest
+class UuidDeleteAllTest
 {
     
     public function __construct()
     {
+        $db = ConnectionHandler::getDb();
+        $query = "TRUNCATE `user_uuid_table`";
+        $result = $db->query($query);
         
+        if ($result === FALSE)
+        {
+            throw new Exception("Failed to empty the test table.");
+        }
     }
     
     
@@ -23,40 +30,23 @@ class UuidTest
         $userRecord = new UuidUserRecord($userDetails);
         $userRecord->save();
         
+        $userDetails2 = array(
+            'email' => 'user2@gmail.com',
+            'name' => 'user2',
+        );
+        
+        $userRecord2 = new UuidUserRecord($userDetails2);
+        $userRecord2->save();
+        
         
         $loadedUserRecords = UuidUserTable::getInstance()->loadAll();
         
-        if (count($loadedUserRecords) !== 1)
+        if (count($loadedUserRecords) !== 2)
         {
             throw new Exception("Did not have the expected number of user records");
         }
         
-        /* @var $loadedUserRecord UuidUserRecord */
-        $loadedUserRecord = $loadedUserRecords[0];
-        
-        if ($loadedUserRecord->getName() !== 'user1')
-        {
-            throw new Exception("User did not have expected name.");
-        }
-        
-        if ($loadedUserRecord->getEmail() !== 'user1@gmail.com')
-        {
-            throw new Exception("User did not have expected email.");
-        }
-        
-        if ($loadedUserRecord->getUuid() === null || $loadedUserRecord->getUuid() === "")
-        {
-            throw new Exception("User uuid was null");
-        }
-        
-        if (iRAP\MysqlObjects\UuidLib::isBinary($loadedUserRecord->getUuid()))
-        {
-            throw new Exception("User uuid is binary not hex.");
-        }
-        
-        # test deletion works.
-        $userRecord->delete();
-        
+        UuidUserTable::getInstance()->deleteAll();
         
         $loadedUserRecords2 = UuidUserTable::getInstance()->loadAll();
         
@@ -64,9 +54,6 @@ class UuidTest
         {
             throw new Exception("Did not have the expected number of user records");
         }
-        
-        # Test creating a record with a UUID we generate.
-        $this->testPreExisitngUuid();
     }
     
     
