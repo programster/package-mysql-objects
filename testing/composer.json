@@ -1,6 +1,8 @@
 {
     "require": {
-        "irap/mysql-objects": "@dev"
+        "irap/mysql-objects": "@dev",
+        "irap/migrations": "^1.0",
+        "irap/autoloader": "^1.0"
     },
     "scripts": {
         "post-install-cmd": [
