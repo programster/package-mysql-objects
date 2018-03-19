@@ -1,0 +1,13 @@
+{
+    "require": {
+        "irap/mysql-objects": "@dev"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "rm -rf vendor/irap/mysql-objects && ln -s ../../../ vendor/irap/mysql-objects"
+        ],
+        "post-update-cmd": [
+            "rm -rf vendor/irap/mysql-objects && ln -s ../../../ vendor/irap/mysql-objects"
+        ]
+    }
+}
