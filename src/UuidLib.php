@@ -50,20 +50,20 @@ class UuidLib
         if ($factory == null)
         {
             $factory = new \Ramsey\Uuid\UuidFactory();
-
+            
             $generator = new \Ramsey\Uuid\Generator\CombGenerator(
                 $factory->getRandomGenerator(), 
                 $factory->getNumberConverter()
             );
-
-            $codec = new Ramsey\Uuid\Codec\TimestampFirstCombCodec($factory->getUuidBuilder());
-
+            
+            $codec = new \Ramsey\Uuid\Codec\TimestampFirstCombCodec($factory->getUuidBuilder());
+            
             $factory->setRandomGenerator($generator);
             $factory->setCodec($codec);
         }
-
-        Ramsey\Uuid\Uuid::setFactory($factory);
-        $uuidString = Ramsey\Uuid\Uuid::uuid4()->toString();
+        
+        \Ramsey\Uuid\Uuid::setFactory($factory);
+        $uuidString = \Ramsey\Uuid\Uuid::uuid4()->toString();
         return $uuidString;
     }
     

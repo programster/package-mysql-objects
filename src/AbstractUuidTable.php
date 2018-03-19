@@ -49,7 +49,7 @@ abstract class AbstractUuidTable implements TableInterface
      *                    cached value from a previous lookup.
      * @return AbstractTableRowObject - the loaded object.
      */
-    public function load(string $uuid, $useCache=true)
+    public function load($uuid, $useCache=true)
     {
         $objects = $this->loadIds(array($uuid), $useCache);
         

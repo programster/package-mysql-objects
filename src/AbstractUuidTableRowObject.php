@@ -103,7 +103,7 @@ abstract class AbstractUuidTableRowObject
      * E.g. delete(id) load(id), and search()
      * @return TableInterface
      */
-    public abstract function getTableHandler() : AbstractUuidTable;
+    public abstract function getTableHandler() : TableInterface;
     
     
     /**
