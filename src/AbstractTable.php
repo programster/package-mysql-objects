@@ -825,13 +825,14 @@ abstract class AbstractTable implements TableInterface
                 }
                 else
                 {
-                    $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
+                    $escapedValues = \iRAP\CoreLibs\MysqliLib::escapeValues($searchValue, $this->getDb());
+                    $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($escapedValues, "'");
                     $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
                 }
             }
             else
             {
-                $whereString .= " = '" . $searchValue . "'";
+                $whereString .= " = '" . $this->getDb()->escape_string($searchValue) . "'";
             }
             
             $whereStrings[] = $whereString;
