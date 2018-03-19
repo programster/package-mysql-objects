@@ -33,7 +33,7 @@ class UuidLib
      * @param string $uuidString
      * @return string
      */
-    public static function convertUuidHexToBinary(string $uuidString) : string
+    public static function convertHexToBinary(string $uuidString) : string
     {
         return pack("H*", str_replace('-', '', $uuidString));
     }

@@ -79,11 +79,13 @@ abstract class AbstractUuidTableRowObject
         if (!isset($this->m_uuid) || $this->m_uuid == null)
         {
             $this->m_uuid = UuidLib::generateUuid();
+            $properties['uuid'] = $this->m_uuid;
             $this->getTableHandler()->create($properties);
         }
         else
         {
-            $this->getTableHandler()->replace($this->m_uuid, $properties);
+            $properties['uuid'] = $this->m_uuid;
+            $this->getTableHandler()->replace($properties);
         }
     }
     

@@ -77,13 +77,13 @@ abstract class AbstractUuidTable implements TableInterface
     {
         $loadedObjects = array();
         $constructor = $this->getRowObjectConstructorWrapper();
-        $idsToFetch = array();
+        $uuidsToFetch = array();
         
         foreach ($uuids as $uuid)
         {
             if (!isset($this->m_objectCache[$uuid]) || !$useCache)
             {
-                $idsToFetch[] = UuidLib::convertUuidHexToBinary($uuid); // convert to binary for mysql
+                $uuidsToFetch[] = UuidLib::convertHexToBinary($uuid); // convert to binary for mysql
             }
             else
             {
@@ -91,10 +91,10 @@ abstract class AbstractUuidTable implements TableInterface
             }
         }
         
-        if (count($idsToFetch) > 0)
+        if (count($uuidsToFetch) > 0)
         {
             $db = $this->getDb();
-            $escapedIdsToFetch = \iRAP\CoreLibs\MysqliLib::escapeValues($idsToFetch, $db);
+            $escapedIdsToFetch = \iRAP\CoreLibs\MysqliLib::escapeValues($uuidsToFetch, $db);
             $idsToFetchWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($escapedIdsToFetch, "'");
             
             $query = "SELECT * FROM `" . $this->getTableName() . "` " . 
@@ -118,10 +118,11 @@ abstract class AbstractUuidTable implements TableInterface
             
             while (($row = $result->fetch_assoc()) != null)
             {
+                /* @var $object AbstractUuidTableRowObject */
                 $object = $constructor($row, $fieldInfoMap);
-                $objectId = $row['id'];
-                $this->m_objectCache[$objectId] = $object;
-                $loadedObjects[$objectId] = $this->m_objectCache[$objectId];
+                $objectUUID = $object->getUuid();
+                $this->m_objectCache[$objectUUID] = $object;
+                $loadedObjects[$objectUUID] = $this->m_objectCache[$objectUUID];
             }
         }
         
@@ -241,6 +242,11 @@ abstract class AbstractUuidTable implements TableInterface
     {
         $db = $this->getDb();
         
+        if (UuidLib::isBinary($row['uuid']) === FALSE)
+        {
+            $row['uuid'] = UuidLib::convertHexToBinary($row['uuid']);
+        }
+        
         $query = "INSERT INTO " . $this->getTableName() . " SET " . 
                 \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
         
@@ -271,6 +277,11 @@ abstract class AbstractUuidTable implements TableInterface
     {
         $db = $this->getDb();
         
+        if (UuidLib::isBinary($row['uuid']) === FALSE)
+        {
+            $row['uuid'] = UuidLib::convertHexToBinary($row['uuid']);
+        }
+        
         $query = "REPLACE INTO " . $this->getTableName() . " SET " . 
                 \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
         
@@ -292,14 +303,33 @@ abstract class AbstractUuidTable implements TableInterface
      * @return AbstractTableRowObject
      * @throws \Exception if query failed.
      */
-    public function update($id, array $row)
+    public function update($uuid, array $row)
     {
+        if (UuidLib::isBinary($uuid) === FALSE)
+        {
+            $binaryUuid = UuidLib::convertHexToBinary($uuid);
+            $stringUuid = $uuid;
+        }
+        else
+        {
+            $binaryUuid = $uuid;
+            $stringUuid = UuidLib::convertBinaryToHex($uuid);
+        }
+        
+        if (isset($row['uuid']))
+        {
+            if (UuidLib::isBinary($row['uuid']) === FALSE)
+            {
+                $row['uuid'] = UuidLib::convertHexToBinary($row['uuid']);
+            }
+        }
+        
         # This logic must not ever be changed to load the row object and then call update on that 
         # because it's update method will call this method and you will end up with a loop.
         $query =
             "UPDATE `" . $this->getTableName() . "` " . 
             "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $this->getDb()) . " " .
-            "WHERE `id`='" . $id . "'";
+            "WHERE `uuid`='" . $binaryUuid . "'";
         
         $result = $this->getDb()->query($query);
         
@@ -308,9 +338,9 @@ abstract class AbstractUuidTable implements TableInterface
             throw new \Exception("Failed to update row in " . $this->getTableName());
         }
         
-        if (isset($this->m_objectCache[$id]))
+        if (isset($this->m_objectCache[$stringUuid]))
         {
-            $existingObject = $this->getCachedObject($id);
+            $existingObject = $this->getCachedObject($stringUuid);
             $existingArrayForm = $existingObject->getArrayForm();
             $newArrayForm = $existingArrayForm;
             
@@ -319,6 +349,8 @@ abstract class AbstractUuidTable implements TableInterface
             {
                 $newArrayForm[$column_name] = $value;
             }
+            
+            $newArrayForm['uuid'] = $stringUuid;
             
             $objectConstructor = $this->getRowObjectConstructorWrapper();
             $updatedObject = $objectConstructor($newArrayForm);
@@ -329,13 +361,13 @@ abstract class AbstractUuidTable implements TableInterface
             # We don't have the object loaded into cache so we need to fetch it from the 
             # database in order to be able to return an object. This updates cache as well.
             # We also need to handle the event of the update being to change the ID.
-            if (isset($row['id']))
+            if (isset($row['uuid']))
             {
-                $updatedObject = $this->load($row['id']);
+                $updatedObject = $this->load($row['uuid']);
             }
             else
             {
-                $updatedObject = $this->load($id);
+                $updatedObject = $this->load($stringUuid);
             }
         }
         
@@ -352,21 +384,30 @@ abstract class AbstractUuidTable implements TableInterface
     /**
      * Removes the obejct from the mysql database.
      * @TODO - have this method use the deleteIds() method which requires a different return type.
-     * @param int $id - the ID of the object we wish to delete.
+     * @param int $uuid - the ID of the object we wish to delete.
      * @return mysqli_result
      * @throws \Exception - if query failed, returning FALSE.
      */
-    public function delete($id)
+    public function delete($uuid)
     {
-        $query = "DELETE FROM `" . $this->getTableName() . "` WHERE `id`='" . $id . "'";
-        $result = $this->getDb()->query($query);
+        if (UuidLib::isBinary($uuid) === FALSE)
+        {
+            $uuid = UuidLib::convertHexToBinary($uuid);
+        }
+        
+        $db = $this->getDb();
+        $query = "DELETE FROM `" . $this->getTableName() . "` WHERE `uuid`='" . $db->escape_string($uuid) . "'";
+        $result = $db->query($query);
         
         if ($result === FALSE)
         {
-            throw new \Exception('Failed to delete ' . $this->getTableName() .  ' with id: ' . $id);
+            print $query . PHP_EOL;
+            $msg = 'Failed to delete ' . $this->getTableName() .  ' with uuid: ' . 
+                    UuidLib::convertBinaryToHex($uuid) . PHP_EOL . $this->getDb()->error;
+            ($msg);
         }
         
-        $this->unsetCache($id);
+        $this->unsetCache($uuid);
         return $result;
     }
     
@@ -375,14 +416,14 @@ abstract class AbstractUuidTable implements TableInterface
      * Deletes objects that have the any of the specified IDs. This will not throw an error or
      * exception if an object with one of the IDs specified does not exist.
      * This is a fast and cache-friendly operation.
-     * @param array $ids - the list of IDs of the objects we wish to delete.
+     * @param array $uuids - the list of IDs of the objects we wish to delete.
      * @return int - the number of objects deleted.
      */
-    public function deleteIds(array $ids)
+    public function deleteIds(array $uuids)
     {
         $db = $this->getDb();
-        $idsToDelete = \iRAP\CoreLibs\MysqliLib::escapeValues($ids, $db);
-        $wherePairs = array("id" => $idsToDelete);
+        $uuidsToDelete = \iRAP\CoreLibs\MysqliLib::escapeValues($uuids, $db);
+        $wherePairs = array("uuid" => $uuidsToDelete);
         $query = $this->generateDeleteWhereQuery($wherePairs, "AND");
         $result = $db->query($query);
         
@@ -392,7 +433,7 @@ abstract class AbstractUuidTable implements TableInterface
         }
         
         # Remove these objects from our cache.
-        foreach ($ids as $objectId)
+        foreach ($uuids as $objectId)
         {
             $this->unsetCache($objectId);
         }
@@ -607,7 +648,7 @@ abstract class AbstractUuidTable implements TableInterface
     
     /**
      * Fetch the single instance of this object.
-     * @return AbstractTable
+     * @return AbstractUuidTable
      */
     public static function getInstance() 
     {
@@ -764,7 +805,7 @@ abstract class AbstractUuidTable implements TableInterface
         // if provided uuid in hex format, convert to binary for mysql.
         if (isset($wherePairs['uuid']) && UuidLib::isBinary($wherePairs['uuid']))
         {
-            $wherePairs['uuid'] = UuidLib::convertUuidHexToBinary($wherePairs['uuid']);
+            $wherePairs['uuid'] = UuidLib::convertHexToBinary($wherePairs['uuid']);
         }
         
         $query = "SELECT * FROM `" . $this->getTableName() . "` " . 
@@ -802,6 +843,7 @@ abstract class AbstractUuidTable implements TableInterface
      */
     protected function generateWhereClause($wherePairs, $conjunction)
     {
+        $db = $this->getDb();
         $whereClause = "";
         $upperConjunction = strtoupper($conjunction);
         $possibleConjunctions = array("AND", "OR");
@@ -815,6 +857,28 @@ abstract class AbstractUuidTable implements TableInterface
         
         foreach ($wherePairs as $attribute => $searchValue)
         {
+            // perform a last second check to make sure uuid is in binary form for mysql
+            if ($attribute === 'uuid')
+            {
+                if (is_array($searchValue))
+                {
+                    foreach ($searchValue as $index => $uuidValue)
+                    {
+                        if (UuidLib::isBinary($uuidValue) === FALSE)
+                        {
+                            $searchValue[$index] = UuidLib::convertHexToBinary($uuidValue);
+                        }
+                    }
+                }
+                else 
+                {
+                    if (UuidLib::isBinary($searchValue) === FALSE)
+                    {
+                        $searchValue = UuidLib::convertHexToBinary($searchValue);
+                    }
+                }
+            }
+            
             $whereString = "`" . $attribute . "` ";
             
             if (is_array($searchValue))
@@ -825,13 +889,14 @@ abstract class AbstractUuidTable implements TableInterface
                 }
                 else
                 {
-                    $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($searchValue, "'");
+                    $escapedSearchValues = \iRAP\CoreLibs\MysqliLib::escapeValues($searchValue, $db);
+                    $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($escapedSearchValues, "'");
                     $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
                 }
             }
             else
             {
-                $whereString .= " = '" . $searchValue . "'";
+                $whereString .= " = '" . $db->escape_string($searchValue) . "'";
             }
             
             $whereStrings[] = $whereString;
