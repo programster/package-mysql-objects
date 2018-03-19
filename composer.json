@@ -16,7 +16,8 @@
     "require": {
         "php": ">=7.0.0",
         "irap/core-libs": "1.1.*",
-        "ramsey/uuid": "^3.7"
+        "ramsey/uuid": "^3.7",
+        "moontoast/math": "^1.1"
     },
     "autoload": {
         "psr-4": {
