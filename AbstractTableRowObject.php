@@ -144,7 +144,7 @@ abstract class AbstractTableRowObject
             {
                 if 
                 (
-                    !in_array($columnName, $this->getTableHandler()->getFieldsThatAllowNull())
+                       !in_array($columnName, $this->getTableHandler()->getFieldsThatAllowNull())
                     && !in_array($columnName, $this->getTableHandler()->getFieldsThatHaveDefaults())
                 )
                 {
