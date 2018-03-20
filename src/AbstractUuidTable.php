@@ -242,6 +242,12 @@ abstract class AbstractUuidTable implements TableInterface
     {
         $db = $this->getDb();
         
+        // user may decide not to set the uuid themselves, in which case we create it for them.
+        if (!isset($row['uuid']))
+        {
+            $row['uuid'] = UuidLib::generateUuid();
+        }
+        
         if (UuidLib::isBinary($row['uuid']) === FALSE)
         {
             $row['uuid'] = UuidLib::convertHexToBinary($row['uuid']);
