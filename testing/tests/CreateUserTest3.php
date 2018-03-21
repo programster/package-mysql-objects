@@ -28,8 +28,6 @@ class CreateUserTest3
         
         $userRecord = UserTable::getInstance()->create($userDetails);
         $userRecord->save();
-        
-        
         $loadedUserRecords = UserTable::getInstance()->loadAll();
         
         if (count($loadedUserRecords) !== 1)

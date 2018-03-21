@@ -22,22 +22,7 @@ class CreateUserTest1
     
     public function run()
     {
-        $userRecord = $this->insertUserRecord();
-        # test deletion works.
-        $userRecord->delete();
-        
-        $loadedUserRecords2 = UserTable::getInstance()->loadAll();
-        
-        if (count($loadedUserRecords2) !== 0)
-        {
-            throw new Exception("Did not have the expected number of user records after deletion");
-        }
-    }
-    
-    
-    private function insertUserRecord()
-    {
-         $userDetails = array(
+        $userDetails = array(
             'email' => 'user1@gmail.com',
             'name' => 'user1',
         );
@@ -45,12 +30,11 @@ class CreateUserTest1
         $userRecord = new UserRecord($userDetails);
         $userRecord->save();
         
-        
         $loadedUserRecords = UserTable::getInstance()->loadAll();
         
         if (count($loadedUserRecords) !== 1)
         {
-            throw new Exception("Did not have the expected number of user records after insertion");
+            throw new Exception("Did not have the expected number of user records after insertion.");
         }
         
         /* @var $loadedUserRecord UserRecord */
@@ -70,8 +54,6 @@ class CreateUserTest1
         {
             throw new Exception("User ID was null");
         }
-                
-        return $userRecord;
     }
 }
 

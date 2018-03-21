@@ -22,15 +22,21 @@ foreach ($testFiles as $testFile)
 {
     $baseName = basename($testFile);
     $testName = str_replace(".php", "", $baseName);
+    $boldGreen = "\033[1;32m";
+    $boldRed = "\033[1;31m";
+    $reset = "\033[0m";
+    $boldCyan = "\033[1;36m";
+    $coloredPassedMessage = "{$boldGreen}PASSED{$reset}";
+    $coloredFailedMessage = "{$boldRed}FAILED{$reset}";
     
     try
     {
         $test = new $testName();
         $test->run();
-        print "{$testName}: PASSED" . PHP_EOL;
+        print "{$boldCyan}{$testName}{$reset}: {$coloredPassedMessage}" . PHP_EOL;
     } 
     catch (Exception $ex) 
     {
-        print "{$testName}: FAILED - {$ex->getMessage()}" . PHP_EOL;
+        print "{$boldCyan}{$testName}{$reset}: {$coloredFailedMessage} - {$ex->getMessage()}" . PHP_EOL;
     }
 }

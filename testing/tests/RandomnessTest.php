@@ -15,8 +15,9 @@ class RandomnessTest
     public function run()
     {
         $uuids = array();
+        $million = 1000000;
         
-        for ($i=0; $i<1000000; $i++)
+        for ($i=0; $i<$million; $i++)
         {
             $uuid = \iRAP\MysqlObjects\UuidLib::generateUuid();
             

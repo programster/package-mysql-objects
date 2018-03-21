@@ -145,6 +145,10 @@ abstract class AbstractUuidTableRowObject
                 $this->m_uuid = $row['uuid'];
             }
         }
+        else
+        {
+            $this->m_uuid = UuidLib::generateUuid();
+        }
          
         $setMethods = $this->getSetFunctions();
                 

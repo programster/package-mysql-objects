@@ -23,29 +23,21 @@ class CreateUuidObjectTest1
     
     public function run()
     {
-        $userRecord = $this->insertUserRecord();
-        # test deletion works.
-        $userRecord->delete();
-        
-        $loadedUserRecords2 = UuidUserTable::getInstance()->loadAll();
-        
-        if (count($loadedUserRecords2) !== 0)
-        {
-            throw new Exception("Did not have the expected number of user records after deletion");
-        }
-    }
-    
-    
-    private function insertUserRecord()
-    {
-         $userDetails = array(
+        $userDetails = array(
             'email' => 'user1@gmail.com',
             'name' => 'user1',
         );
         
         $userRecord = new UuidUserRecord($userDetails);
-        $userRecord->save();
         
+        if ($userRecord->getUuid() === "" || $userRecord->getUuid() === null)
+        {
+            throw new Exception("The created user object was not automatically given a UUID.");
+        }
+        
+        // vitally important this save call is made AFTER we check for a UUID as the object
+        // should have a uuid BEFORE we do anything with the database.
+        $userRecord->save();
         
         $loadedUserRecords = UuidUserTable::getInstance()->loadAll();
         
@@ -76,8 +68,6 @@ class CreateUuidObjectTest1
         {
             throw new Exception("User uuid is binary not hex.");
         }
-        
-        return $userRecord;
     }
 }
 
