@@ -1,6 +1,6 @@
 {
     "require": {
-        "irap/mysql-objects": "dev-sp-uuid as @dev",
+        "irap/mysql-objects": "dev-master as @dev",
         "irap/migrations": "^1.0",
         "irap/autoloader": "^1.0"
     },
