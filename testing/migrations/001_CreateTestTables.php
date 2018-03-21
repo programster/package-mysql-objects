@@ -25,7 +25,7 @@ class CreateTestTables implements \iRAP\Migrations\MigrationInterface
         
         
         $createUserIdTable = 
-            "CREATE TABLE `user_id_table` (
+            "CREATE TABLE `user` (
                 `id` int unsigned NOT NULL AUTO_INCREMENT,
                 `name` varchar(255) NOT NULL,
                 `email` text NOT NULL,
