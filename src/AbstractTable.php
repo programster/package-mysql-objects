@@ -32,7 +32,6 @@ abstract class AbstractTable implements TableInterface
     public function loadAll()
     {
         $this->emptyCache();
-        $objects = array();
 
         $query   = "SELECT * FROM `" . $this->getTableName() . "`";
         $result  = $this->getDb()->query($query);
@@ -245,7 +244,7 @@ abstract class AbstractTable implements TableInterface
     {
         $db = $this->getDb();
 
-        $query = "INSERT INTO " . $this->getTableName() . " SET " .
+        $query = "INSERT INTO `" . $this->getTableName() . "` SET " .
                 \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
 
         $result = $db->query($query);
@@ -277,7 +276,7 @@ abstract class AbstractTable implements TableInterface
     {
         $db = $this->getDb();
 
-        $query = "REPLACE INTO " . $this->getTableName() . " SET " .
+        $query = "REPLACE INTO `" . $this->getTableName() . "` SET " .
                 \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
 
         $result = $db->query($query);
