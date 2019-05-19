@@ -8,7 +8,7 @@
  * and refer to it through the tableInterface.
  */
 
-namespace iRAP\MysqlObjects;
+namespace Programster\MysqlObjects;
 
 
 abstract class AbstractTable implements TableInterface

@@ -1,7 +1,7 @@
 <?php
 
 require_once(__DIR__ . '/settings.php');
-require_once(__DIR__ . '/vendor/autoload.php');
+require_once(__DIR__ . '/../vendor/autoload.php');
 
 $autoloader = new \iRAP\Autoloader\Autoloader(array(
     __DIR__,
@@ -10,7 +10,7 @@ $autoloader = new \iRAP\Autoloader\Autoloader(array(
 ));
 
 $migrationManager = new iRAP\Migrations\MigrationManager(
-    __DIR__ . '/migrations', 
+    __DIR__ . '/migrations',
     ConnectionHandler::getDb()
 );
 
@@ -28,14 +28,14 @@ foreach ($testFiles as $testFile)
     $boldCyan = "\033[1;36m";
     $coloredPassedMessage = "{$boldGreen}PASSED{$reset}";
     $coloredFailedMessage = "{$boldRed}FAILED{$reset}";
-    
+
     try
     {
         $test = new $testName();
         $test->run();
         print "{$boldCyan}{$testName}{$reset}: {$coloredPassedMessage}" . PHP_EOL;
-    } 
-    catch (Exception $ex) 
+    }
+    catch (Exception $ex)
     {
         print "{$boldCyan}{$testName}{$reset}: {$coloredFailedMessage} - {$ex->getMessage()}" . PHP_EOL;
     }

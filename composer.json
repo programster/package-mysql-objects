@@ -1,15 +1,15 @@
 {
-    "name": "irap/mysql-objects",
+    "name": "programster/mysql-objects",
     "type": "library",
     "description": "Package for rapidly developing models that represent mysql tables. Tables must have an id field.",
     "keywords": ["mysql", "mysqli","models"],
-    "homepage": "http://www.irap.org/",
-    "license": "none",
+    "homepage": "https://github.com/programster/package-mysql-objects",
+    "license": "MIT",
     "authors": [
         {
             "name": "Stuart Page",
-            "email": "stuart.page@irap.org",
-            "homepage": "http://www.irap.org/",
+            "email": "sdpagent@gmail.com",
+            "homepage": "https://blog.programster.org",
             "role": "Developer"
         }
     ],
@@ -21,7 +21,7 @@
     },
     "autoload": {
         "psr-4": {
-            "iRAP\\MysqlObjects\\": "src/"
+            "Programster\\MysqlObjects\\": "src/"
         }
     }
 }

@@ -4,7 +4,7 @@
  * Extend the basic table object into one that can be used as a resource.
  */
 
-namespace iRAP\MysqlObjects;
+namespace Programster\MysqlObjects;
 
 abstract class AbstractResourceObject extends AbstractTableRowObject
 {

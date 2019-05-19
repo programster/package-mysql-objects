@@ -5,7 +5,7 @@
  * be turned into one of these and interacted with.
  */
 
-namespace iRAP\MysqlObjects;
+namespace Programster\MysqlObjects;
 
 abstract class AbstractTableRowObject
 {

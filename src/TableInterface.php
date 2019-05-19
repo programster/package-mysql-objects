@@ -8,7 +8,7 @@
  * This is allows the developer to treat the model as an object that represents a row in the table
  */
 
-namespace iRAP\MysqlObjects;
+namespace Programster\MysqlObjects;
 
 
 interface TableInterface

@@ -4,7 +4,7 @@
  * A library to help with using UUIDs.
  */
 
-namespace iRAP\MysqlObjects;
+namespace Programster\MysqlObjects;
 
 
 class UuidLib

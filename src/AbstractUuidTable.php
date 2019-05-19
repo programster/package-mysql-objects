@@ -5,7 +5,7 @@
  * IDs.
  */
 
-namespace iRAP\MysqlObjects;
+namespace Programster\MysqlObjects;
 
 
 abstract class AbstractUuidTable implements TableInterface
