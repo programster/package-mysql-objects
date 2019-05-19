@@ -9,5 +9,5 @@ namespace iRAP\MysqlObjects;
 
 class NoSuchIdException extends \Exception
 {
-    
+
 }
