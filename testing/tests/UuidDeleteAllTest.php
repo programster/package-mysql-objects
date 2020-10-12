@@ -59,7 +59,7 @@ class UuidDeleteAllTest
     
     private function testPreExisitngUuid()
     {
-        $uuid = iRAP\MysqlObjects\UuidLib::generateUuid();
+        $uuid = Programster\MysqlObjects\UuidLib::generateUuid();
         
         $userDetails = array(
             'uuid' => $uuid,

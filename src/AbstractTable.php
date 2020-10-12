@@ -62,7 +62,7 @@ abstract class AbstractTable implements TableInterface
             throw new NoSuchIdException($msg);
         }
 
-        return \iRAP\CoreLibs\ArrayLib::getFirstElement($objects);
+        return \Programster\CoreLibs\ArrayLib::getFirstElement($objects);
     }
 
 
@@ -97,8 +97,8 @@ abstract class AbstractTable implements TableInterface
         if (count($idsToFetch) > 0)
         {
             $db = $this->getDb();
-            $escapedIdsToFetch = \iRAP\CoreLibs\MysqliLib::escapeValues($idsToFetch, $db);
-            $idsToFetchWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($escapedIdsToFetch, "'");
+            $escapedIdsToFetch = \Programster\MysqliLib\MysqliLib::escapeValues($idsToFetch, $db);
+            $idsToFetchWrapped = \Programster\CoreLibs\ArrayLib::wrapElements($escapedIdsToFetch, "'");
 
             $query = "SELECT * FROM `" . $this->getTableName() . "` " .
                      "WHERE `id` IN(" . implode(", ", $idsToFetchWrapped) . ")";
@@ -245,7 +245,7 @@ abstract class AbstractTable implements TableInterface
         $db = $this->getDb();
 
         $query = "INSERT INTO `" . $this->getTableName() . "` SET " .
-                \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
+                \Programster\MysqliLib\MysqliLib::generateQueryPairs($row, $db);
 
         $result = $db->query($query);
 
@@ -277,7 +277,7 @@ abstract class AbstractTable implements TableInterface
         $db = $this->getDb();
 
         $query = "REPLACE INTO `" . $this->getTableName() . "` SET " .
-                \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
+                \Programster\MysqliLib\MysqliLib::generateQueryPairs($row, $db);
 
         $result = $db->query($query);
 
@@ -303,7 +303,7 @@ abstract class AbstractTable implements TableInterface
         # because it's update method will call this method and you will end up with a loop.
         $query =
             "UPDATE `" . $this->getTableName() . "` " .
-            "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $this->getDb()) . " " .
+            "SET " . \Programster\MysqliLib\MysqliLib::generateQueryPairs($row, $this->getDb()) . " " .
             "WHERE `id`='" . $id . "'";
 
         $result = $this->getDb()->query($query);
@@ -386,7 +386,7 @@ abstract class AbstractTable implements TableInterface
     public function deleteIds(array $ids)
     {
         $db = $this->getDb();
-        $idsToDelete = \iRAP\CoreLibs\MysqliLib::escapeValues($ids, $db);
+        $idsToDelete = \Programster\MysqliLib\MysqliLib::escapeValues($ids, $db);
         $wherePairs = array("id" => $idsToDelete);
         $query = $this->generateDeleteWhereQuery($wherePairs, "AND");
         $result = $db->query($query);
@@ -713,7 +713,7 @@ abstract class AbstractTable implements TableInterface
      * Update our cache with the provided object.
      * Note that if you simply changed the object's ID, you will need to call unsetCache() on
      * the original ID.
-     * @param \iRAP\MysqlObjects\AbstractTableRowObject $object
+     * @param \Programster\MysqlObjects\AbstractTableRowObject $object
      */
     protected function updateCache(AbstractTableRowObject $object)
     {
@@ -824,8 +824,8 @@ abstract class AbstractTable implements TableInterface
                 }
                 else
                 {
-                    $escapedValues = \iRAP\CoreLibs\MysqliLib::escapeValues($searchValue, $this->getDb());
-                    $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($escapedValues, "'");
+                    $escapedValues = \Programster\MysqliLib\MysqliLib::escapeValues($searchValue, $this->getDb());
+                    $searchValueWrapped = \Programster\CoreLibs\ArrayLib::wrapElements($escapedValues, "'");
                     $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
                 }
             }

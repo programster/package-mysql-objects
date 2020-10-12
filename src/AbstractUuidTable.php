@@ -59,7 +59,7 @@ abstract class AbstractUuidTable implements TableInterface
             throw new NoSuchIdException($msg);
         }
 
-        return \iRAP\CoreLibs\ArrayLib::getFirstElement($objects);
+        return \Programster\CoreLibs\ArrayLib::getFirstElement($objects);
     }
 
 
@@ -94,8 +94,8 @@ abstract class AbstractUuidTable implements TableInterface
         if (count($uuidsToFetch) > 0)
         {
             $db = $this->getDb();
-            $escapedIdsToFetch = \iRAP\CoreLibs\MysqliLib::escapeValues($uuidsToFetch, $db);
-            $idsToFetchWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($escapedIdsToFetch, "'");
+            $escapedIdsToFetch = \Programster\MysqliLib\MysqliLib::escapeValues($uuidsToFetch, $db);
+            $idsToFetchWrapped = \Programster\CoreLibs\ArrayLib::wrapElements($escapedIdsToFetch, "'");
 
             $query = "SELECT * FROM `" . $this->getTableName() . "` " .
                      "WHERE `uuid` IN(" . implode(", ", $idsToFetchWrapped) . ")";
@@ -254,7 +254,7 @@ abstract class AbstractUuidTable implements TableInterface
         }
 
         $query = "INSERT INTO " . $this->getTableName() . " SET " .
-                \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
+                \Programster\MysqliLib\MysqliLib::generateQueryPairs($row, $db);
 
         $result = $db->query($query);
 
@@ -289,7 +289,7 @@ abstract class AbstractUuidTable implements TableInterface
         }
 
         $query = "REPLACE INTO " . $this->getTableName() . " SET " .
-                \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $db);
+                \Programster\MysqliLib\MysqliLib::generateQueryPairs($row, $db);
 
         $result = $db->query($query);
 
@@ -334,7 +334,7 @@ abstract class AbstractUuidTable implements TableInterface
         # because it's update method will call this method and you will end up with a loop.
         $query =
             "UPDATE `" . $this->getTableName() . "` " .
-            "SET " . \iRAP\CoreLibs\MysqliLib::generateQueryPairs($row, $this->getDb()) . " " .
+            "SET " . \Programster\MysqliLib\MysqliLib::generateQueryPairs($row, $this->getDb()) . " " .
             "WHERE `uuid`='" . $binaryUuid . "'";
 
         $result = $this->getDb()->query($query);
@@ -428,7 +428,7 @@ abstract class AbstractUuidTable implements TableInterface
     public function deleteIds(array $uuids)
     {
         $db = $this->getDb();
-        $uuidsToDelete = \iRAP\CoreLibs\MysqliLib::escapeValues($uuids, $db);
+        $uuidsToDelete = \Programster\MysqliLib\MysqliLib::escapeValues($uuids, $db);
         $wherePairs = array("uuid" => $uuidsToDelete);
         $query = $this->generateDeleteWhereQuery($wherePairs, "AND");
         $result = $db->query($query);
@@ -755,7 +755,7 @@ abstract class AbstractUuidTable implements TableInterface
      * Update our cache with the provided object.
      * Note that if you simply changed the object's ID, you will need to call unsetCache() on
      * the original ID.
-     * @param \iRAP\MysqlObjects\AbstractTableRowObject $object
+     * @param \Programster\MysqlObjects\AbstractTableRowObject $object
      */
     protected function updateCache(AbstractUuidTableRowObject $object)
     {
@@ -895,8 +895,8 @@ abstract class AbstractUuidTable implements TableInterface
                 }
                 else
                 {
-                    $escapedSearchValues = \iRAP\CoreLibs\MysqliLib::escapeValues($searchValue, $db);
-                    $searchValueWrapped = \iRAP\CoreLibs\ArrayLib::wrapElements($escapedSearchValues, "'");
+                    $escapedSearchValues = \Programster\MysqliLib\MysqliLib::escapeValues($searchValue, $db);
+                    $searchValueWrapped = \Programster\CoreLibs\ArrayLib::wrapElements($escapedSearchValues, "'");
                     $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
                 }
             }

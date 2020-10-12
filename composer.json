@@ -14,10 +14,14 @@
         }
     ],
     "require": {
-        "php": ">=7.0.0",
-        "irap/core-libs": "1.1.*",
-        "ramsey/uuid": "^3.7",
-        "moontoast/math": "^1.1"
+        "php": ">=7.2.0",
+        "programster/core-libs": "~1.7",
+        "ramsey/uuid": "^4.1",
+        "programster/mysqli-lib": "^1.0"
+    },
+    "require-dev": {
+        "irap/autoloader": "1.0.*",
+        "irap/migrations": "1.0.*"
     },
     "autoload": {
         "psr-4": {

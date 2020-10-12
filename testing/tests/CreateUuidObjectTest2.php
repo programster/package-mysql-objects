@@ -21,7 +21,7 @@ class CreateUuidObjectTest2
     
     public function run()
     {
-        $uuid = iRAP\MysqlObjects\UuidLib::generateUuid();
+        $uuid = Programster\MysqlObjects\UuidLib::generateUuid();
         
         $userDetails = array(
             'uuid' => $uuid,

@@ -22,7 +22,7 @@ class LoadByUuidTest
     
     public function run()
     {
-        $uuid = \iRAP\MysqlObjects\UuidLib::generateUuid();
+        $uuid = \Programster\MysqlObjects\UuidLib::generateUuid();
         
         $userDetails = array(
             'uuid' => $uuid,
@@ -53,7 +53,7 @@ class LoadByUuidTest
             throw new Exception("User uuid was null");
         }
         
-        if (iRAP\MysqlObjects\UuidLib::isBinary($loadedUserRecord->getUuid()))
+        if (Programster\MysqlObjects\UuidLib::isBinary($loadedUserRecord->getUuid()))
         {
             throw new Exception("User uuid is binary not hex.");
         }

@@ -64,7 +64,7 @@ class CreateUuidObjectTest1
             throw new Exception("User uuid was null");
         }
         
-        if (iRAP\MysqlObjects\UuidLib::isBinary($loadedUserRecord->getUuid()))
+        if (Programster\MysqlObjects\UuidLib::isBinary($loadedUserRecord->getUuid()))
         {
             throw new Exception("User uuid is binary not hex.");
         }

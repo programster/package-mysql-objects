@@ -16,7 +16,7 @@ $migrationManager = new iRAP\Migrations\MigrationManager(
 
 $migrationManager->migrate();
 
-$testFiles = \iRAP\CoreLibs\Filesystem::getDirContents(__DIR__ . '/tests');
+$testFiles = \Programster\CoreLibs\Filesystem::getDirContents(__DIR__ . '/tests');
 
 foreach ($testFiles as $testFile)
 {

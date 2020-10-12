@@ -19,7 +19,7 @@ class RandomnessTest
         
         for ($i=0; $i<$million; $i++)
         {
-            $uuid = \iRAP\MysqlObjects\UuidLib::generateUuid();
+            $uuid = \Programster\MysqlObjects\UuidLib::generateUuid();
             
             if (isset($uuids[$uuid]))
             {
