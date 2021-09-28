@@ -14,8 +14,8 @@
         }
     ],
     "require": {
-        "php": ">=7.2.0",
-        "programster/core-libs": "~1.7",
+        "php": ">=7.4.0",
+        "programster/core-libs": "2.1.*",
         "ramsey/uuid": "^4.1",
         "programster/mysqli-lib": "^1.0"
     },
