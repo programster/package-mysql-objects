@@ -439,8 +439,7 @@ abstract class AbstractNoIdTable
                 else
                 {
                     $escapedValues = \Programster\MysqliLib\MysqliLib::escapeValues($searchValue, $this->getDb());
-                    $searchValueWrapped = \Programster\CoreLibs\ArrayLib::wrapElements($escapedValues, "'");
-                    $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
+                    $whereString .= " IN('" . implode("','", $escapedValues) . "')";
                 }
             }
             else

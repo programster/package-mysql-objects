@@ -59,7 +59,7 @@ abstract class AbstractUuidTable implements TableInterface
             throw new NoSuchIdException($msg);
         }
 
-        return \Programster\CoreLibs\ArrayLib::getFirstElement($objects);
+        return $objects[array_key_first($objects)];
     }
 
 
@@ -95,10 +95,9 @@ abstract class AbstractUuidTable implements TableInterface
         {
             $db = $this->getDb();
             $escapedIdsToFetch = \Programster\MysqliLib\MysqliLib::escapeValues($uuidsToFetch, $db);
-            $idsToFetchWrapped = \Programster\CoreLibs\ArrayLib::wrapElements($escapedIdsToFetch, "'");
 
             $query = "SELECT * FROM `" . $this->getTableName() . "` " .
-                     "WHERE `uuid` IN(" . implode(", ", $idsToFetchWrapped) . ")";
+                     "WHERE `uuid` IN('" . implode("', '", $escapedIdsToFetch) . "')";
 
             /* @var $result \mysqli_result */
             $result = $db->query($query);
@@ -808,12 +807,7 @@ abstract class AbstractUuidTable implements TableInterface
      */
     protected function generateSelectWhereQuery(array $wherePairs, $conjunction)
     {
-        // if provided uuid in hex format, convert to binary for mysql.
-        if (isset($wherePairs['uuid']) && UuidLib::isBinary($wherePairs['uuid']))
-        {
-            $wherePairs['uuid'] = UuidLib::convertHexToBinary($wherePairs['uuid']);
-        }
-
+        # generateWhereClause() converts any hex uuids (a single one, or a list) to binary.
         $query = "SELECT * FROM `" . $this->getTableName() . "` " .
                 $this->generateWhereClause($wherePairs, $conjunction);
 
@@ -896,8 +890,7 @@ abstract class AbstractUuidTable implements TableInterface
                 else
                 {
                     $escapedSearchValues = \Programster\MysqliLib\MysqliLib::escapeValues($searchValue, $db);
-                    $searchValueWrapped = \Programster\CoreLibs\ArrayLib::wrapElements($escapedSearchValues, "'");
-                    $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
+                    $whereString .= " IN('" . implode("','", $escapedSearchValues) . "')";
                 }
             }
             else

@@ -41,31 +41,27 @@ class UuidLib
 
 
     /**
-     * Generates a v4 UUID that is in sequential form for database performance.
+     * Generates a v4 UUID that is in sequential form for database performance. This is a
+     * "timestamp-first COMB": the first 6 bytes are the current time, in units of 10
+     * microseconds, so UUIDs sort in the order they were generated, and the other 10 bytes
+     * are random (apart from the version and variant bits). This is the same format that
+     * ramsey/uuid's CombGenerator and TimestampFirstCombCodec produced, which earlier versions
+     * of this package used, so new UUIDs keep sorting after existing ones.
+     *
      * @return string - the generated UUID string.
      */
     public static function generateUuid() : string
     {
-        static $factory = null;
+        $time = explode(' ', microtime());
+        $timestamp = (int)($time[1] . substr($time[0], 2, 5));
+        $timestampBytes = hex2bin(str_pad(dechex($timestamp), 12, '0', STR_PAD_LEFT));
+        $bytes = $timestampBytes . random_bytes(10);
 
-        if ($factory == null)
-        {
-            $factory = new \Ramsey\Uuid\UuidFactory();
+        # Set the version (4) and the RFC 4122 variant bits.
+        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
 
-            $generator = new \Ramsey\Uuid\Generator\CombGenerator(
-                $factory->getRandomGenerator(),
-                $factory->getNumberConverter()
-            );
-
-            $codec = new \Ramsey\Uuid\Codec\TimestampFirstCombCodec($factory->getUuidBuilder());
-
-            $factory->setRandomGenerator($generator);
-            $factory->setCodec($codec);
-        }
-
-        \Ramsey\Uuid\Uuid::setFactory($factory);
-        $uuidString = \Ramsey\Uuid\Uuid::uuid4()->toString();
-        return $uuidString;
+        return self::convertBinaryToHex($bytes);
     }
 
 

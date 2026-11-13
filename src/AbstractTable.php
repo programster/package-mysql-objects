@@ -62,7 +62,7 @@ abstract class AbstractTable implements TableInterface
             throw new NoSuchIdException($msg);
         }
 
-        return \Programster\CoreLibs\ArrayLib::getFirstElement($objects);
+        return $objects[array_key_first($objects)];
     }
 
 
@@ -98,10 +98,9 @@ abstract class AbstractTable implements TableInterface
         {
             $db = $this->getDb();
             $escapedIdsToFetch = \Programster\MysqliLib\MysqliLib::escapeValues($idsToFetch, $db);
-            $idsToFetchWrapped = \Programster\CoreLibs\ArrayLib::wrapElements($escapedIdsToFetch, "'");
 
             $query = "SELECT * FROM `" . $this->getTableName() . "` " .
-                     "WHERE `id` IN(" . implode(", ", $idsToFetchWrapped) . ")";
+                     "WHERE `id` IN('" . implode("', '", $escapedIdsToFetch) . "')";
 
             /* @var $result \mysqli_result */
             $result = $db->query($query);
@@ -825,8 +824,7 @@ abstract class AbstractTable implements TableInterface
                 else
                 {
                     $escapedValues = \Programster\MysqliLib\MysqliLib::escapeValues($searchValue, $this->getDb());
-                    $searchValueWrapped = \Programster\CoreLibs\ArrayLib::wrapElements($escapedValues, "'");
-                    $whereString .= " IN(" . implode(",", $searchValueWrapped)  . ")";
+                    $whereString .= " IN('" . implode("','", $escapedValues) . "')";
                 }
             }
             else
